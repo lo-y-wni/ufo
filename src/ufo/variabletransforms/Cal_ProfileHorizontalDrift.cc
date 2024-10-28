@@ -41,16 +41,9 @@ void Cal_ProfileHorizontalDrift::runTransform(const std::vector<bool> &apply) {
   // Ensure observations have been sorted by air pressure in descending order.
   if (requireDescendingPressureSort_) {
     if (obsdb_.obs_sort_var() != "pressure")
-      throw eckit::UserError("Sort variable must be air_pressure", Here());
+      throw eckit::UserError("Sort variable must be pressure", Here());
     if (obsdb_.obs_sort_order() != "descending")
       throw eckit::UserError("Profiles must be sorted in descending order", Here());
-  } else {
-    oops::Log::warning() << "Warning: the requirement that pressures are sorted in "
-                         << "descending order has been disabled for this transform. "
-                         << "This could lead to incorrect behaviour. "
-                         << "If you did not intend to do this, ensure that the option "
-                         << "'require descending pressure sort' is set to 'true'."
-                         << std::endl;
   }
 
   // Obtain values from ObsSpace.

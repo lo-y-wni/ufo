@@ -93,9 +93,9 @@ observations:
       height coordinate: height
   expectExceptionWithMessage: Group variables configuration is empty
 
-# The profiles are not sorted by air pressure, throwing an exception.
+# The profiles are not sorted by pressure, throwing an exception.
 - obs space:
-    name: Profiles not sorted by air pressure
+    name: Profiles not sorted by pressure
     obsdatain:
       engine:
         type: H5File
@@ -108,7 +108,7 @@ observations:
     - filter: Variable Transforms
       Transform: ProfileHorizontalDrift
       height coordinate: height
-  expectExceptionWithMessage: Sort variable must be air_pressure
+  expectExceptionWithMessage: Sort variable must be pressure
 
 # The profiles are not sorted in descending order, throwing an exception.
 - obs space:

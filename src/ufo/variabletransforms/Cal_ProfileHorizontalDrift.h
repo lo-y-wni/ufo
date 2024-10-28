@@ -29,6 +29,8 @@ class Cal_ProfileHorizontalDriftParameters: public VariableTransformParametersBa
   oops::Parameter<bool> keep_in_window{"keep in window", false, this};
 
   /// Require pressure to be sorted in descending order.
+  /// Only set this to `false` if you are happy for the data to potentially
+  /// be unsorted, which could lead to unexpected behaviour.
   oops::Parameter<bool> RequireDescendingPressureSort
     {"require descending pressure sort", true, this};
 };
