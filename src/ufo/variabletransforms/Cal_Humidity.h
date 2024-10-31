@@ -68,10 +68,10 @@ class Cal_HumidityParameters: public VariableTransformParametersBase {
 * obs filters:
 * - filter: Variables Transform
 *   Transform: ["RelativeHumidity"]
-*   Formulation: Sonntag    # Using Sonntag formulation
+*   Method: UKMO    # Using UKMO method
 * \endcode
 *
-* See Cal_RelativeHumidityParameters for filter setup.
+* See Cal_HumidityParameters for filter setup.
 */
 class Cal_RelativeHumidity : public TransformBase {
  public:
@@ -99,7 +99,8 @@ class Cal_RelativeHumidity : public TransformBase {
   std::string dewpointtemperatureat2mvariable_;
   std::string virtualtempvariable_;
   // list of specific implementation(s) - This is controlled by "method"
-  void methodDEFAULT(const std::vector<bool> &apply);
+  void methodDEFAULT(const std::vector<bool> &apply,
+                     formulas::Formulation SatVaporPres_fromTemp_form);
   void methodUKMOmixingratio(const std::vector<bool> &apply);
   void methodUKMO(const std::vector<bool> &apply);
 };
@@ -118,8 +119,7 @@ class Cal_RelativeHumidity : public TransformBase {
 * obs filters:
 * - filter: Variables Transform
 *   Transform: ["SpecificHumidity"]
-*   Method: UKMO            # Using UKMO method and UKMO default formulation
-*   Formulation: Sonntag    # Using Sonntag formulation
+*   Method: UKMO            # Using UKMO method
 * \endcode
 *
 * See VariableTransformParametersBase for filter setup.
@@ -144,7 +144,8 @@ class Cal_SpecificHumidity : public TransformBase {
   std::string relativehumidityvariable_;
   std::string dewpointtemperaturevariable_;
   // list of specific implementation(s) - This is controlled by "method"
-  void methodDEFAULT(const std::vector<bool> &apply);
+  void methodDEFAULT(const std::vector<bool> &apply,
+                     formulas::Formulation SatVaporPres_fromTemp_form);
 };
 
 /*!

@@ -11,10 +11,38 @@
 namespace ufo {
 namespace lookuptable {
 
-// Table of saturation water vapour pressure [Pascale]
-// Used in the derivation of saturated vapor pressure (SatVaporPres_fromTemp)
-// using "formulas::MethodFormulation::LandoltBornstein"
-static const float LandoltBornstein_lookuptable[] = {0.966483E-02 ,
+// Table of saturation water vapour pressure [Pascal] for temperatures 183.15 K
+// to 338.15 K in increments of 0.1 K, computed using the Goff-Gratch formulae
+// (as adopted by the WMO) over ice below and including 273.15 K (0 C) and over
+// water above 273.15 K. It is used in the derivation of saturated vapor
+// pressure from temperature (SatVaporPres_fromTemp using
+// "formulas::Formulation::GoffGratchLandoltBornsteinIceWater").
+//
+// The table contains values from "Landolt-Bornstein, 1987, Numerical Data and
+// Functional relationships in Science and Technology. Group V/Vol 4B
+// Meteorology. Physical and Chemical properties of Air, P35." That table
+// contains values for satutated vapour pressure over both water and, up to
+// 0C (273.15K), over ice. See the table below this for the values which are
+// only over water.
+//
+// Note also that this table has been modified from that found in
+// Landolt-Borstein. Firstly, the values here are in Pa, not hPa as found in
+// the reference. Secondly, this table has values covering the range 183.15 K
+// to 338.15 K in increments of 0.1 K, whilst the reference table has values
+// covering the range 233 K to 303 K in increments of 1 K. It is unclear where
+// these extra values have come from (for example, they might have been
+// calculated directly from the Goff-Gratch formulae), but they are included
+// here to allow complete duplication of the calculation used in the Met Office
+// OPS system. To be clear, there are values here that are direct duplicates of
+// Landold-Borstein (i.e. the reference is correct), but with units in Pa.
+//
+// The Goff-Gratch formula for saturated water over ice is valid between 173 K
+// and 273.15 K. The formula for water is valid between 233 K and 373 K.
+//
+// Note: 0th element is a repeat of 1st element to cater for special case
+// of low temperatures for which the array index is rounded down due to machine
+// precision.
+static const float GoffGratchLandoltBornsteinIceWater[] = {0.966483E-02 ,
 0.966483E-02 , 0.984279E-02 , 0.100240E-01 , 0.102082E-01 , 0.103957E-01 ,
 0.105865E-01 , 0.107803E-01 , 0.109777E-01 , 0.111784E-01 , 0.113825E-01 ,
 0.115902E-01 , 0.118016E-01 , 0.120164E-01 , 0.122348E-01 , 0.124572E-01 ,

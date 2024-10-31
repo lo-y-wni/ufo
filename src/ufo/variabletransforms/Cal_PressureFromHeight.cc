@@ -31,17 +31,13 @@ Cal_PressureFromHeightForProfile::Cal_PressureFromHeightForProfile(
 void Cal_PressureFromHeightForProfile::runTransform(const std::vector<bool> &apply) {
   oops::Log::trace() << " --> Retrieve Pressure From Height (Profile)"
             << std::endl;
-  oops::Log::trace() << "      --> method: " << method() << std::endl;
-  oops::Log::trace() << "      --> formulation: " << formulation() << std::endl;
+  oops::Log::trace() << "      --> method: " << options_.Method.value() << std::endl;
   oops::Log::trace() << "      --> obsName: " << obsName() << std::endl;
 
   // Get the right method
   switch (method()) {
-    case formulas::MethodFormulation::NCAR:
-    case formulas::MethodFormulation::NOAA:
-    case formulas::MethodFormulation::UKMO:
     default: {
-      methodUKMO(apply);
+      methodDEFAULT(apply);
       break;
     }
   }
@@ -49,7 +45,8 @@ void Cal_PressureFromHeightForProfile::runTransform(const std::vector<bool> &app
 
 /************************************************************************************/
 
-void Cal_PressureFromHeightForProfile::methodUKMO(const std::vector<bool> &apply) {
+void Cal_PressureFromHeightForProfile::methodDEFAULT(
+    const std::vector<bool> &apply) {
   std::vector<float> airTemperature;
   std::vector<float> airTemperatureSurface;
   std::vector<float> geopotentialHeight;
@@ -61,12 +58,12 @@ void Cal_PressureFromHeightForProfile::methodUKMO(const std::vector<bool> &apply
   std::vector<float> stationElevation;
   std::vector<float> airPressure;
 
-  float Pvap = missingValueFloat;   // Vapour pressure
-  float Zcurrent = missingValueFloat;   // Current height value
-  float Tcurrent = missingValueFloat;   // Current temperature value
-  float Pprev = missingValueFloat;  // Previous pressure value [ps]
-  float Zprev = missingValueFloat;  // Previous height value [m]
-  float Tprev = missingValueFloat;  // Previous temperature value [k]
+  float Pvap = missingValueFloat;      // Vapour pressure
+  float Zcurrent = missingValueFloat;  // Current height value
+  float Tcurrent = missingValueFloat;  // Current temperature value
+  float Pprev = missingValueFloat;     // Previous pressure value [ps]
+  float Zprev = missingValueFloat;     // Previous height value [m]
+  float Tprev = missingValueFloat;     // Previous temperature value [k]
 
   bool hasBeenUpdated = false;
 
@@ -79,8 +76,7 @@ void Cal_PressureFromHeightForProfile::methodUKMO(const std::vector<bool> &apply
 
   // 0. Innitialise the ouput array
   // -------------------------------------------------------------------------------
-  getObservation(pressureGroup_, pressureCoord_,
-                 airPressure);
+  getObservation(pressureGroup_, pressureCoord_, airPressure);
   if (airPressure.empty()) {
     airPressure = std::vector<float>(nlocs_);
     std::fill(airPressure.begin(), airPressure.end(), missingValueFloat);
@@ -89,30 +85,23 @@ void Cal_PressureFromHeightForProfile::methodUKMO(const std::vector<bool> &apply
   // 1. get the right variables
   // -------------------------------------------------------------------------------
   // Compulsory meta-data
-  getObservation("MetaData", "stationElevation",
-                 stationElevation, true);
+  getObservation("MetaData", "stationElevation", stationElevation, true);
   // Compulsory surface observation
-  getObservation("ObsValue", "stationPressure",
-                 pressureStation, true);
-  getObservation("ObsValue", "airTemperatureAt2M",
-                 airTemperatureSurface, true);
+  getObservation("ObsValue", "stationPressure", pressureStation, true);
+  getObservation("ObsValue", "airTemperatureAt2M", airTemperatureSurface, true);
 
   // Compulsory upper air observation
-  getObservation("ObsValue", heightCoord_,
-                 geopotentialHeight, true);
-  getObservation("ObsValue", "airTemperature",
-                 airTemperature, true);
+  getObservation("ObsValue", heightCoord_, geopotentialHeight, true);
+  getObservation("ObsValue", "airTemperature", airTemperature, true);
 
   // Here we have a choice between dew point temperature and relative humidity
   // --> By default we chose dew point temperature first!
-  getObservation("ObsValue", "dewPointTemperature",
-                 dewPointTemperature);
+  getObservation("ObsValue", "dewPointTemperature", dewPointTemperature);
   if (dewPointTemperature.empty()) {
     // if we don't have dewpoint temperature, use relative humidity.
-    getObservation("ObsValue", "relativeHumidity",
-                   relativeHumidity, true);
-    getObservation("ObsValue", "relativeHumidityAt2M",
-                   relativeHumiditySurface, true);
+    getObservation("ObsValue", "relativeHumidity", relativeHumidity, true);
+    getObservation("ObsValue", "relativeHumidityAt2M", relativeHumiditySurface,
+                   true);
   } else {
     getObservation("ObsValue", "dewPointTemperatureAt2M",
                    dewPointTemperatureSurface, true);
@@ -126,7 +115,7 @@ void Cal_PressureFromHeightForProfile::methodUKMO(const std::vector<bool> &apply
                            << oops::listOfVectorSizes(geopotentialHeight, airTemperature,
                                                       relativeHumidity)
                            << std::endl;
-      throw eckit::BadValue("At least one vector is the wrong size out of "
+      throw eckit::BadValue("At least one vector is the wrong size or empty out of "
                             "Z, T and Rh", Here());
     }
   } else {
@@ -135,7 +124,7 @@ void Cal_PressureFromHeightForProfile::methodUKMO(const std::vector<bool> &apply
                            << oops::listOfVectorSizes(geopotentialHeight, airTemperature,
                                                       dewPointTemperature)
                            << std::endl;
-      throw eckit::BadValue("At least one vector is the wrong size out of "
+      throw eckit::BadValue("At least one vector is the wrong size or empty out of "
                             "Z, T and Td", Here());
     }
   }
@@ -162,22 +151,26 @@ void Cal_PressureFromHeightForProfile::methodUKMO(const std::vector<bool> &apply
     if (dewPointTemperature.empty()) {
       // Update Tprev if Rh is valid
       if (relativeHumidity[rSort[ilocs]] != missingValueFloat) {
-        Pvap = formulas::SatVaporPres_fromTemp(Tprev, formulation());
-        Pvap = formulas::SatVaporPres_correction(Pvap, Tprev, -1.0, formulation());
+        Pvap =
+            formulas::SatVaporPres_fromTemp(Tprev, formulas::Formulation::Sonntag);
+        Pvap = formulas::SatVaporPres_correction(Pvap, Tprev, -1.0,
+                                                 formulas::Formulation::Gill);
         Tprev = formulas::VirtualTemp_From_Rh_Psat_P_T(
-            relativeHumiditySurface[rSort[ilocs]], Pvap, Pprev, Tprev, formulation());
+            relativeHumiditySurface[rSort[ilocs]], Pvap, Pprev, Tprev,
+            formulas::Formulation::DEFAULT);
       }
 
     } else {
       // Update Tprev if dew point positive
       if (dewPointTemperature[rSort[ilocs]] != missingValueFloat) {
-        Pvap = formulas::SatVaporPres_fromTemp(dewPointTemperatureSurface[rSort[ilocs]],
-                                      formulation());
-        Pvap = formulas::SatVaporPres_correction(Pvap,
-                                                 dewPointTemperatureSurface[rSort[ilocs]],
-                                                 -1.0,
-                                                 formulation());
-        Tprev = formulas::VirtualTemp_From_Psat_P_T(Pvap, Pprev, Tprev, formulation());
+        Pvap = formulas::SatVaporPres_fromTemp(
+            dewPointTemperatureSurface[rSort[ilocs]],
+            formulas::Formulation::Sonntag);
+        Pvap = formulas::SatVaporPres_correction(
+            Pvap, dewPointTemperatureSurface[rSort[ilocs]], -1.0,
+            formulas::Formulation::Gill);
+        Tprev = formulas::VirtualTemp_From_Psat_P_T(
+            Pvap, Pprev, Tprev, formulas::Formulation::DEFAULT);
       }
     }
 
@@ -194,27 +187,31 @@ void Cal_PressureFromHeightForProfile::methodUKMO(const std::vector<bool> &apply
       if (airPressure[rSort[ilocs]] != missingValueFloat) continue;
 
       // Cycle if geopotentialHeight or airTemperatures is not valid
-      if (Zcurrent == missingValueFloat || Tcurrent == missingValueFloat) continue;
+      if (Zcurrent == missingValueFloat || Tcurrent == missingValueFloat)
+        continue;
 
       // Update Tcurrent
       if (dewPointTemperature.empty()) {
         // Update Tcurrent if Rh is valid
         if (relativeHumidity[rSort[ilocs]] != missingValueFloat) {
-          Pvap = formulas::SatVaporPres_fromTemp(Tprev, formulation());
-          Pvap = formulas::SatVaporPres_correction(Pvap, Tprev, -1.0, formulation());
+          Pvap = formulas::SatVaporPres_fromTemp(Tprev,
+                                                 formulas::Formulation::Sonntag);
+          Pvap = formulas::SatVaporPres_correction(
+              Pvap, Tprev, -1.0, formulas::Formulation::Gill);
           Tcurrent = formulas::VirtualTemp_From_Rh_Psat_P_T(
-              relativeHumidity[rSort[ilocs]], Pvap, Pprev, Tcurrent, formulation());
+              relativeHumidity[rSort[ilocs]], Pvap, Pprev, Tcurrent,
+              formulas::Formulation::DEFAULT);
         }
       } else {
         // Update Tcurrent if dew point positive
         if (dewPointTemperature[rSort[ilocs]] != missingValueFloat) {
-          Pvap = formulas::SatVaporPres_fromTemp(dewPointTemperature[rSort[ilocs]],
-                                                 formulation());
-          Pvap = formulas::SatVaporPres_correction(Pvap,
-                                                   dewPointTemperature[rSort[ilocs]],
-                                                   -1.0,
-                                                   formulation());
-          Tcurrent = formulas::VirtualTemp_From_Psat_P_T(Pvap, Pprev, Tcurrent, formulation());
+          Pvap = formulas::SatVaporPres_fromTemp(
+              dewPointTemperature[rSort[ilocs]], formulas::Formulation::Sonntag);
+          Pvap = formulas::SatVaporPres_correction(
+              Pvap, dewPointTemperature[rSort[ilocs]], -1.0,
+              formulas::Formulation::Gill);
+          Tcurrent = formulas::VirtualTemp_From_Psat_P_T(
+              Pvap, Pprev, Tcurrent, formulas::Formulation::DEFAULT);
         }
       }
       // Hydrostatic equation:
@@ -238,6 +235,7 @@ void Cal_PressureFromHeightForProfile::methodUKMO(const std::vector<bool> &apply
   }
 }
 
+
 /************************************************************************************/
 //  Cal_PressureFromHeightForICAO
 /************************************************************************************/
@@ -258,24 +256,20 @@ Cal_PressureFromHeightForICAO::Cal_PressureFromHeightForICAO(
 
 void Cal_PressureFromHeightForICAO::runTransform(const std::vector<bool> &apply) {
   oops::Log::trace() << " Retrieve Pressure From Height (ICAO)" << std::endl;
-  oops::Log::trace() << "      --> method: " << method() << std::endl;
-  oops::Log::trace() << "      --> formulation: " << formulation() << std::endl;
+  oops::Log::trace() << "      --> method: " << options_.Method.value() << std::endl;
   oops::Log::trace() << "      --> obsName: " << obsName() << std::endl;
 
   // Get the right method
   switch (method()) {
-    case formulas::MethodFormulation::NCAR:
-    case formulas::MethodFormulation::NOAA:
-    case formulas::MethodFormulation::UKMO:
     default: {
-      methodUKMO(apply);
+      methodDEFAULT(apply);
       break;
     }
   }
 }
 /************************************************************************************/
 
-void Cal_PressureFromHeightForICAO::methodUKMO(const std::vector<bool> &apply) {
+void Cal_PressureFromHeightForICAO::methodDEFAULT(const std::vector<bool> &apply) {
   std::vector<float> geopotentialHeight;
   std::vector<float> airPressure;
   std::vector<float> airPressure_ref;
@@ -322,7 +316,7 @@ void Cal_PressureFromHeightForICAO::methodUKMO(const std::vector<bool> &apply) {
       if (airPressure[rSort[ilocs]] != missingValueFloat) continue;
 
       airPressure[rSort[ilocs]] = formulas::Height_To_Pressure_ICAO_atmos(
-          geopotentialHeight[rSort[ilocs]], formulation());
+          geopotentialHeight[rSort[ilocs]], formulas::Formulation::ICAO);
 
       hasBeenUpdated = true;
     }

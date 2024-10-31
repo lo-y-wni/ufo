@@ -39,7 +39,7 @@ void Cal_SatZenithAngleCorrection::runTransform(const std::vector<bool> &apply) 
   Variable variableToBeCorrected(parameters_.transformVariable.value());
   oops::Log::trace() << " --> correct input array for the satellite viewing angle"
             << std::endl;
-  oops::Log::trace() << "      --> method: " << method() << std::endl;
+  oops::Log::trace() << "      --> method: " << options_.Method.value() << std::endl;
   oops::Log::trace() << "      --> obsName: " << obsName() << std::endl;
   oops::Log::trace() << "      --> variable being corrected: "
                      << variableToBeCorrected.fullName() << std::endl;

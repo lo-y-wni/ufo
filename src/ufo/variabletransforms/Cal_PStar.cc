@@ -38,7 +38,7 @@ Cal_PStar::Cal_PStar(
 void Cal_PStar::runTransform(const std::vector<bool> &apply) {
   oops::Log::trace() << " --> Calculate pressure at model surface"
             << std::endl;
-  oops::Log::trace() << "      --> method: " << method() << std::endl;
+  oops::Log::trace() << "      --> method: " << options_.Method.value() << std::endl;
   oops::Log::trace() << "      --> obsName: " << obsName() << std::endl;
 
   const size_t nlocs = obsdb_.nlocs();

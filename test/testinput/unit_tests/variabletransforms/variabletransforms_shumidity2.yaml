@@ -20,10 +20,10 @@ observations:
   - filter: Variable Transforms
     Transform: "SpecificHumidity"
     pressure variable: stationPressure
-    dew point temperature variable: dewPointTemperature 
+    dew point temperature variable: dewPointTemperature
     specific humidity variable: specificHumidity
-    temperature variable: airTemperature 
-    Formulation: Walko
+    temperature variable: airTemperature
+    Method: Walko
 
   - filter: Perform Action
     filter variables:

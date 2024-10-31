@@ -19,38 +19,40 @@ namespace ufo {
 
 namespace formulas {
 
-MethodFormulation resolveMethods(const std::string& input) {
-  // Met Centers
-  if (input == "UKMOmixingratio") return UKMOmixingratio;
-  if (input == "UKMO") return UKMO;
-  if (input == "NCAR") return NCAR;
-  if (input == "NOAA") return NOAA;
-  return DEFAULT;
-}
-
-MethodFormulation resolveFormulations(const std::string& input, const std::string& method) {
-  if (input.empty()) {
-    //  if we do not have any formulation set, then we assign
-    // the method as formulation
-    return resolveMethods(method);
+Method resolveMethods(const std::string& method) {
+  if (method == "UKMOmixingratio") {
+    return Method::UKMOmixingratio;
+  } else if (method == "UKMO") {
+    return Method::UKMO;
+  } else if (method == "NCAR") {
+    return Method::NCAR;
+  } else if (method == "NOAA") {
+    return Method::NOAA;
+  } else if (method == "Sonntag") {
+    return Method::Sonntag;
+  } else if (method == "Walko") {
+    return Method::Walko;
+  } else if (method == "Murphy") {
+    return Method::Murphy;
+  } else if (method == "GoffGratchLandoltBornsteinIceWater") {
+    return Method::GoffGratchLandoltBornsteinIceWater;
+  } else if (method == "Rogers") {
+    return Method::Rogers;
+  } else if (method == "default") {
+    return Method::DEFAULT;
   } else {
-    // Formulation authors
-    if (input == "Sonntag") return Sonntag;
-    if (input == "Walko") return Walko;
-    if (input == "Murphy") return Murphy;
-    return DEFAULT;
+    throw eckit::BadParameter("Unknown method: " + method, Here());
   }
 }
 
 /* -------------------------------------------------------------------------------------*/
-float SatVaporPres_fromTemp(float temp_K, MethodFormulation formulation) {
+float SatVaporPres_fromTemp(float temp_K, Formulation formulation) {
   const float missingValueFloat = util::missingValue<float>();
   const float t0c = static_cast<float>(ufo::Constants::t0c);
   float e_sub_s = missingValueFloat;  // Saturation vapour pressure (Pa)
 
   switch (formulation) {
-    case formulas::MethodFormulation::UKMO:
-    case formulas::MethodFormulation::Sonntag: {
+    case Formulation::Sonntag: {
       /* I. Source: Eqn 7, Sonntag, D., Advancements in the field of hygrometry,
        *     Meteorol. Zeitschrift, N. F., 3, 51-66, 1994.
        *     Most radiosonde manufacturers use Wexler, or Hyland and Wexler
@@ -65,15 +67,14 @@ float SatVaporPres_fromTemp(float temp_K, MethodFormulation formulation) {
       }
       break;
     }
-    case formulas::MethodFormulation::UKMOmixingratio:
-    case formulas::MethodFormulation::LandoltBornstein: {
-      /* Returns a saturation mixing ratio given a temperature and pressure
-         using saturation vapour pressures caluclated using the Goff-Gratch
-         formulae, adopted by the WMO as taken from Landolt-Bornstein, 1987
-         Numerical Data and Functional relationships in Science and
-         Technology.  Group V/Vol 4B Meteorology.  Physical and Chemical
-         properties of Air, P35.
-      */
+    case Formulation::GoffGratchLandoltBornsteinIceWater: {
+      // Returns a saturation mixing ratio given a temperature and pressure
+      // using saturation vapour pressures over ice below 0C and over water
+      // above 0C. These are calculated with the Goff-Gratch formulae (adopted
+      // by the WMO) via values taken from a table in Landolt-Bornstein, 1987
+      // Numerical Data and Functional relationships in Science and Technology.
+      // Group V/Vol 4B Meteorology. Physical and Chemical properties of Air,
+      // P35.
       if (temp_K != missingValueFloat) {
         float adj_Temp;
         float lookup_a;
@@ -91,15 +92,15 @@ float SatVaporPres_fromTemp(float temp_K, MethodFormulation formulation) {
         lookup_i = static_cast<int>(lookup_a);
         lookup_a = lookup_a - lookup_i;
         e_sub_s = (1.0 - lookup_a) *
-                  lookuptable::LandoltBornstein_lookuptable[lookup_i] +
+                  lookuptable::GoffGratchLandoltBornsteinIceWater[lookup_i] +
                   lookup_a *
-                  lookuptable::LandoltBornstein_lookuptable[lookup_i + 1];
+                  lookuptable::GoffGratchLandoltBornsteinIceWater[lookup_i + 1];
       } else {
         e_sub_s = 0.0f;
       }
       break;
     }
-    case formulas::MethodFormulation::Walko: {
+    case Formulation::Walko: {
           // Polynomial fit of Goff-Gratch (1946) formulation. (Walko, 1991)
           float x = std::max(-80.0f, temp_K-t0c);
           const std::vector<float> c{610.5851f, 44.40316f, 1.430341f, 0.2641412e-1f,
@@ -107,9 +108,9 @@ float SatVaporPres_fromTemp(float temp_K, MethodFormulation formulation) {
           e_sub_s = c[0]+x*(c[1]+x*(c[2]+x*(c[3]+x*(c[4]+x*(c[5]+x*(c[6]+x*(c[7]+x*c[8])))))));
           break;
     }
-    case formulas::MethodFormulation::Murphy: {
+    case Formulation::Murphy: {
       // ALTERNATIVE (costs more CPU, more accurate than Walko, 1991)
-      // Source: Murphy and Koop, Review of the vapour pressure of ice and
+      // Source: Eq. 10 of Murphy and Koop, Review of the vapour pressure of ice and
       //       supercooled water for atmospheric applications, Q. J. R.
       //       Meteorol. Soc (2005), 131, pp. 1539-1565.
       e_sub_s = std::exp(54.842763f - 6763.22f / temp_K - 4.210f * std::log(temp_K)
@@ -118,9 +119,8 @@ float SatVaporPres_fromTemp(float temp_K, MethodFormulation formulation) {
                      + 0.014025f * temp_K));
       break;
     }
-    case formulas::MethodFormulation::NCAR:
-    case formulas::MethodFormulation::NOAA:
-    case formulas::MethodFormulation::Rogers:
+    case Formulation::Rogers:
+      [[fallthrough]];
     default: {
       // Classical formula from Rogers and Yau (1989; Eq2.17)
       e_sub_s = 1000. * 0.6112 * std::exp(17.67f * (temp_K - t0c) / (temp_K - 29.65f));
@@ -132,54 +132,47 @@ float SatVaporPres_fromTemp(float temp_K, MethodFormulation formulation) {
 
 /* -------------------------------------------------------------------------------------*/
 float SatVaporPres_correction(float e_sub_s, float temp_K, float pressure,
-                              MethodFormulation formulation) {
+                              Formulation formulation) {
   const float t0c = static_cast<float>(ufo::Constants::t0c);
 
   switch (formulation) {
-    case formulas::MethodFormulation::NCAR:
-    case formulas::MethodFormulation::NOAA:
-    case formulas::MethodFormulation::UKMOmixingratio:
-    case formulas::MethodFormulation::UKMO:
-    case formulas::MethodFormulation::Sonntag: {
-      /* e_sub_s is the saturation vapour pressure of pure water vapour.FsubW (~ 1.005
-         at 1000 hPa) is the enhancement factor needed for moist air.
-         If P is set to -1: then eg eqns 20, 22 of Sonntag is used
-         If P > 0 then eqn A4.6 of Adrian Gill's book is used to guarantee consistency with the
-         saturated specific humidity.
+    case Formulation::Gill: {
+      /* e_sub_s is the saturation vapour pressure of pure water vapour. FsubW
+         (~ 1.005 at 1000 hPa) is the enhancement factor needed for moist air.
       */
       float FsubW;  // Enhancement factor
+      // Gill Eq. A4.6 converted to Pa and K
       FsubW = 1.0f + 1.0E-8f * pressure * (4.5f + 6.0E-4f * (temp_K - t0c) *(temp_K - t0c));
+      // Gill Eq. A4.7
       e_sub_s = e_sub_s * FsubW;
-
       break;
     }
     default: {
-      std::string errString = "Aborting, no method matches enum formulas::MethodFormulation";
+      std::string errString =
+        "Aborting, only Gill formulation is supported for SatVaporPres_correction";
       oops::Log::error() << errString;
       throw eckit::BadValue(errString);
     }
   }
   return e_sub_s;
 }
+
 /* -------------------------------------------------------------------------------------*/
 
-float Qsat_From_Psat(float Psat, float P, MethodFormulation formulation) {
+float Qsat_From_Psat(float Psat, float P, Formulation formulation) {
   float QSat = util::missingValue<float>();  // Saturated specific humidity or
                                              // saturated vapour pressure (if P<0)
 
   switch (formulation) {
-    case formulas::MethodFormulation::NCAR:
-    case formulas::MethodFormulation::NOAA:
-    case formulas::MethodFormulation::UKMOmixingratio:
-    case formulas::MethodFormulation::UKMO:
-    default: {
-      // Calculation using the Sonntag (1994) formula. (With fix at low
-      // pressure)
-      //  Note that at very low pressures we apply a fix, to prevent a
-      //     singularity (Qsat tends to 1.0 kg/kg).
+    case Formulation::GillUKMO:
       QSat = (Constants::epsilon * Psat) /
              (std::max(P, Psat) - (1.0f - Constants::epsilon) * Psat);
       break;
+    default: {
+      std::string errString =
+        "Aborting, only GillUKMO formulation is supported for Qsat_From_Psat";
+      oops::Log::error() << errString;
+      throw eckit::BadValue(errString);
     }
   }
   return QSat;
@@ -188,16 +181,19 @@ float Qsat_From_Psat(float Psat, float P, MethodFormulation formulation) {
 /* -------------------------------------------------------------------------------------*/
 
 // VirtualTemperature()
-float VirtualTemp_From_Psat_P_T(float Psat, float P, float T, MethodFormulation formulation) {
+float VirtualTemp_From_Psat_P_T(float Psat, float P, float T, Formulation formulation) {
   float Tv = util::missingValue<float>();  // virtual temperature
 
   switch (formulation) {
-    case formulas::MethodFormulation::NCAR:
-    case formulas::MethodFormulation::NOAA:
-    case formulas::MethodFormulation::UKMO:
-    default: {
+    case Formulation::DEFAULT: {
       Tv = T * ((P + Psat / Constants::epsilon) / (P + Psat));
       break;
+    }
+    default: {
+      std::string errString =
+        "Aborting, only DEFAULT formulation is supported for VirtualTemp_From_Psat_P_T";
+      oops::Log::error() << errString;
+      throw eckit::BadValue(errString);
     }
   }
   return Tv;
@@ -206,17 +202,20 @@ float VirtualTemp_From_Psat_P_T(float Psat, float P, float T, MethodFormulation 
 /* -------------------------------------------------------------------------------------*/
 
 float VirtualTemp_From_Rh_Psat_P_T(float Rh, float Psat, float P, float T,
-                                   MethodFormulation formulation) {
+                                   Formulation formulation) {
   float Tv = util::missingValue<float>();  // virtual temperature
 
   switch (formulation) {
-    case formulas::MethodFormulation::NCAR:
-    case formulas::MethodFormulation::NOAA:
-    case formulas::MethodFormulation::UKMO:
-    default: {
+    case Formulation::DEFAULT: {
       float PsatRh  = Psat * Rh * 0.01f;
       Tv = VirtualTemp_From_Psat_P_T(PsatRh , P, T, formulation);
       break;
+    }
+    default: {
+      std::string errString =
+        "Aborting, only DEFAULT formulation is supported for VirtualTemp_From_Rh_Psat_P_T";
+      oops::Log::error() << errString;
+      throw eckit::BadValue(errString);
     }
   }
 
@@ -225,15 +224,12 @@ float VirtualTemp_From_Rh_Psat_P_T(float Rh, float Psat, float P, float T,
 
 /* -------------------------------------------------------------------------------------*/
 
-float Height_To_Pressure_ICAO_atmos(float height, MethodFormulation formulation) {
+float Height_To_Pressure_ICAO_atmos(float height, Formulation formulation) {
   const float missingValueFloat = util::missingValue<float>();
   float Pressure = missingValueFloat;
 
   switch (formulation) {
-    case formulas::MethodFormulation::NCAR:
-    case formulas::MethodFormulation::NOAA:
-    case formulas::MethodFormulation::UKMO:
-    default: {
+    case Formulation::ICAO: {
       float RepT_Bot, RepT_Top, ZP1, ZP2;
 
       RepT_Bot = 1.0 / Constants::icao_temp_surface;
@@ -266,21 +262,27 @@ float Height_To_Pressure_ICAO_atmos(float height, MethodFormulation formulation)
       }
       break;
     }
+    default: {
+      std::string errString =
+        "Aborting, only ICAO formulation is supported for Height_To_Pressure_ICAO_atmos";
+      oops::Log::error() << errString;
+      throw eckit::BadValue(errString);
+    }
   }
   return Pressure;
 }
 
 /* -------------------------------------------------------------------------------------*/
 
-float Pressure_To_Height(float pressure, MethodFormulation method) {
+float Pressure_To_Height(float pressure, Formulation formulation) {
   const float missingValueFloat = util::missingValue<float>();
   const float pressure_hPa = pressure * 0.01;
   float height = missingValueFloat;
 
-  switch (method) {
-    case formulas::MethodFormulation::NCAR:
+  switch (formulation) {
+    case Formulation::NCARRAL: {
       // The NCAR-RAL method: a fast approximation for pressures > 120 hPa.
-      // Above 120hPa (~15km) use the ICAO atmosphere.
+      // Below 120hPa (~15km) use the ICAO atmosphere.
       if (pressure == missingValueFloat || pressure <= 0.0f) {
         height = missingValueFloat;
       } else if (pressure_hPa <= 120.0f &&
@@ -297,10 +299,8 @@ float Pressure_To_Height(float pressure, MethodFormulation method) {
         height = 44307.692 * (1.0 - std::pow(pressure / 101325.0, 0.190));
       }
       break;
-
-    case formulas::MethodFormulation::NOAA:
-    case formulas::MethodFormulation::UKMO:
-    default: {
+    }
+    case Formulation::ICAO: {
       if (pressure == missingValueFloat || pressure <= 0.0f) {
         height = missingValueFloat;
       } else if (pressure_hPa > Constants::icao_pressure_l) {
@@ -319,6 +319,12 @@ float Pressure_To_Height(float pressure, MethodFormulation method) {
           Constants::icao_height_u;
       }
       break;
+    }
+    default: {
+      std::string errString =
+        "Aborting, only NCARRAL and ICAO formulations are supported for Pressure_To_Height";
+      oops::Log::error() << errString;
+      throw eckit::BadValue(errString);
     }
   }
   return height;
@@ -420,15 +426,12 @@ void horizontalDrift
  std::vector<float> & lat_out,
  std::vector<float> & lon_out,
  std::vector<util::DateTime> & time_out,
- MethodFormulation formulation,
+ Formulation formulation,
  const util::DateTime * const window_end) {
   const float missingValueFloat = util::missingValue<float>();
 
   switch (formulation) {
-  case formulas::MethodFormulation::NCAR:
-  case formulas::MethodFormulation::NOAA:
-  case formulas::MethodFormulation::UKMO:
-  default: {
+  case Formulation::LarocheSarrazin: {
     // Location of the first entry in the profile.
     const size_t loc0 = locs.front();
 
@@ -519,6 +522,12 @@ void horizontalDrift
       }
     }
     break;
+  }
+  default: {
+      std::string errString =
+        "Aborting, only LarocheSarrazin formulation is supported for horizontalDrift";
+      oops::Log::error() << errString;
+      throw eckit::BadValue(errString);
   }
   }
 }

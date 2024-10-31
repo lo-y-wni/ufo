@@ -22,48 +22,84 @@ namespace ufo {
 
 namespace formulas {
 
-/*! Various Methods and Formulations available */
-enum MethodFormulation {
-  // Methods: Met Center
-  UKMOmixingratio,  /*!< UKMO mixing ratio specfic formulation */
-  UKMO,   /*!< UKMO specific formulation */
-  NCAR,   /*!< NCAR specific formulation */
-  NOAA,   /*!< NOAA specific formulation */
-  DEFAULT, /*!< DEFAULT formulation */
-
-  // Formulations: Specific authors
-  Murphy,
-  Sonntag,
-  LandoltBornstein,
-  Walko,
-  Rogers
+enum class Method {
+  UKMOmixingratio,  ///< UKMO mixing ratio specific methods
+  UKMO,   ///< UKMO specific methods
+  NCAR,   ///< NCAR specific methods
+  NOAA,   ///< NOAA specific methods
+  Sonntag,  ///< For humidity only: use the default methods, calculating
+     ///< saturation mixing ratio from temperature using Eqn 7, Sonntag, D.,
+     ///< Advancements in the field of hygrometry, Meteorol. Zeitschrift, N. F., 3,
+     ///< 51-66, 1994.
+  Walko,  ///< For humidity only: use the default methods, calculating saturation
+    ///< mixing ratio from temperature using polynomial fit of Goff-Gratch (1946)
+    ///< formulation (Walko, 1991)
+  Murphy,  ///< For humidity only: use the default methods, calculating
+    ///< saturation mixing ratio from temperature using alternative method to Walko
+    ///< 1991 (costs more CPU, more accurate)
+    ///< Reference: Eq. 10 of "Murphy and Koop, Review of the vapour pressure of ice
+    ///< and supercooled water for atmospheric applications, Q. J. R. Meteorol. Soc
+    ///< (2005), 131, pp. 1539-1565."
+  GoffGratchLandoltBornsteinIceWater,  ///< For humidity only: use the default
+    ///< methods, calculating saturation mixing ratio from temperature using the
+    ///< Goff-Gratch formulae over ice below and including 273.15 K (0 C) and over
+    ///< water above 273.15 K, with calculations taken from "Landolt-Bornstein,
+    ///< 1987, Numerical Data and Functional relationships in Science and
+    ///< Technology. Group V/Vol 4B Meteorology. Physical and Chemical properties of
+    ///< Air, P35."
+  Rogers,  ///< For humidity only: use the default methods, calculating
+    ///< saturation mixing ratio from temperature using classical formula from
+    ///< Rogers and Yau (1989; Eq2.17)
+  DEFAULT  ///< Default methods with default formulations (where applicable)
 };
 
-MethodFormulation resolveMethods(const std::string& input);
+/*! Various Formulations available - Specified by author */
+enum class Formulation {
+  DEFAULT, /*!< DEFAULT formulation - see descriptions of formulae */
 
-MethodFormulation resolveFormulations(const std::string& input, const std::string& method);
+  // Humidity Formulations: Specific authors
+  Murphy,
+  Sonntag,
+  GoffGratchLandoltBornsteinIceWater,
+  Gill,
+  GillUKMO,
+  Walko,
+  Rogers,
+
+  // Other Formulations
+  NCARRAL,
+  ICAO,
+  LarocheSarrazin,
+};
+
+Method resolveMethods(const std::string& method);
 
 // -------------------------------------------------------------------------------------
 /*!
 * \brief Calculates saturated vapour pressure from temperature
 *
 * \b Formulation \b available:
-*      - UKMO:  as Sonntag 1997
 *      - Sonntag:
-*        Calculation is using the Eqn 7 Sonntag (1997)
+*        Calculation is using the Eqn 7 Sonntag (1994)
 *        Reference: "Sonntag, D., Advancements in the field of hygrometry,
 *        Meteorol. Zeitschrift, N. F., 3, 51-66, 1994." .
 *      - Walko:
 *        Polynomial fit of Goff-Gratch (1946) formulation. (Walko, 1991)
 *      - Murphy:
 *        Alternative method to Walko 1991 (costs more CPU, more accurate)
-*        Reference: "Murphy and Koop, Review of the vapour pressure of ice and
-         supercooled water for atmospheric applications, Q. J. R.
-         Meteorol. Soc (2005), 131, pp. 1539-1565."
-*      - NCAR: as default
-*      - NOAA: as default
-*      - DEFAULT:
+*        Reference: Eq. 10 of "Murphy and Koop, Review of the vapour pressure of ice and
+*        supercooled water for atmospheric applications, Q. J. R.
+*        Meteorol. Soc (2005), 131, pp. 1539-1565."
+*      - GoffGratchLandoltBornsteinIceWater:
+*        Using the Goff-Gratch formulae over ice below and including 273.15 K
+*        (0 C) and over water above 273.15 K, with calculations taken from
+*        "Landolt-Bornstein, 1987, Numerical Data and Functional relationships
+*        in Science and Technology. Group V/Vol 4B Meteorology. Physical and
+*        Chemical properties of Air, P35."
+*      - Rogers:
 *        Classical formula from Rogers and Yau (1989; Eq2.17)
+*      - DEFAULT:
+*        Uses Rogers formulation.
 *
 *
 * \param temp_K
@@ -71,23 +107,22 @@ MethodFormulation resolveFormulations(const std::string& input, const std::strin
 * \return saturated vapour pressure
 */
 float SatVaporPres_fromTemp(const float temp_K,
-                   const MethodFormulation formulation = formulas::MethodFormulation::DEFAULT);
+                   const Formulation formulation = Formulation::DEFAULT);
 
 
 // -------------------------------------------------------------------------------------
 /*!
-* \brief Calculates saturated vapour pressure from temperature
+* \brief Calculates a saturation vapour pressure for moist air from the
+* saturation vapour pressure of pure water vapour at a give temperature and
+* pressure.
 *
 * \b Formulation \b available:
-*      - NCAR: as Sonntag 1997
-*      - NOAA: as Sonntag 1997
-*      - UKMOmixingratio:  as Landolt-Bornstein 1987
-*      - UKMO:  as Sonntag 1997
-*      - Sonntag:
-*        Correct the the saturation vapour pressure of pure water vapour
+*      - Gill:
+*        Corrects the saturation vapour pressure of pure water vapour
 *        using an enhancement factor needed for moist air.
-*        Reference: eg eqns 20, 22 of Sonntag, but for consistency with QSAT the formula
-         below is from eqn A4.6 of Adrian Gill's book.
+*        Reference: Eq. A4.6 of Gill (1982) "Atmosphere-Ocean Dynamics",
+*        Academic Press. This approximates table 89 of the Smithsonian
+*        Meteorological Tables correct to 2 parts in 10^4.
 *
 *
 * \param e_sub_s
@@ -99,7 +134,7 @@ float SatVaporPres_fromTemp(const float temp_K,
 * \return saturated vapour pressure
 */
 float SatVaporPres_correction(float e_sub_s, float temp_K, float pressure,
-                        const MethodFormulation formulation = formulas::MethodFormulation::DEFAULT);
+                        const Formulation formulation = Formulation::Gill);
 // -------------------------------------------------------------------------------------
 /*!
 * \brief Calculates Saturated specific humidity or saturated vapour pressure using
@@ -107,13 +142,14 @@ float SatVaporPres_correction(float e_sub_s, float temp_K, float pressure,
 *
 *
 * \b Formulation \b available:
-*      - NCAR: as default
-*      - NOAA: as default
-*      - UKMOmixingratio: as default
-*      - UKMO: as default
-*      - DEFAULT:
-*        Calculation is using the Sonntag (1994) formula. (With fix at low
-*pressure)
+*      - GillUKMO:
+*        Qsat is given by rearranging equation A4.3 in Gill (1982) with the vapour
+*        pressure `e'` replaced by `Psat` and specific humidity `q` by `Qsat`:
+*           `Qsat = epsilon Psat / (P - (1 - epsilon) Psat)`
+*        where `epsilon = 0.62198` (the ratio of molecular weights of water and
+*        dry air). To avoid asymptotic behaviour for `P < Psat`, the denominator
+*        is modified to ensure `QSat = 1 kg/kg` for `P < Psat` (this appears to be
+*        UKMO specific hence the formulation name).
 *
 * \param Psat
 *      saturation vapour pressure of pure water vapour
@@ -122,17 +158,13 @@ float SatVaporPres_correction(float e_sub_s, float temp_K, float pressure,
 * \return Saturated specific humidity or saturated vapour pressure
 */
 float Qsat_From_Psat(float Psat, float P,
-                     MethodFormulation formulation = formulas::MethodFormulation::DEFAULT);
+                     Formulation formulation = Formulation::GillUKMO);
 
 // -------------------------------------------------------------------------------------
 /*!
 * \brief Derive Virtual Temperature from saturation vapour pressure, pressure and temperature
 *
 * \b Formulation \b available:
-*      - NCAR: as default
-*      - NOAA: as default
-*      - UKMOmixingratio: as default
-*      - UKMO: as default
 *      - DEFAULT: \f$ Tv = T * ((P + Psat / \epsilon) / (P + Psat)) \f$
 *
 * \param Psat
@@ -144,7 +176,7 @@ float Qsat_From_Psat(float Psat, float P,
 * \return Virtual Temperature
 */
 float VirtualTemp_From_Psat_P_T(float Psat, float P, float T,
-                          MethodFormulation formulation = formulas::MethodFormulation::DEFAULT);
+                          Formulation formulation = Formulation::DEFAULT);
 
 // -------------------------------------------------------------------------------------
 /*!
@@ -152,9 +184,6 @@ float VirtualTemp_From_Psat_P_T(float Psat, float P, float T,
 * and temperature
 *
 * \b Formulation \b available:
-*      - NCAR: as default
-*      - NOAA: as default
-*      - UKMO: as default
 *      - DEFAULT: \f$ \alpha = Psat * Rh * 0.01 \f$
 *
 * \param Rh
@@ -168,7 +197,7 @@ float VirtualTemp_From_Psat_P_T(float Psat, float P, float T,
 * \return Virtual Temperature
 */
 float VirtualTemp_From_Rh_Psat_P_T(float Rh, float Psat, float P, float T,
-                            MethodFormulation formulation = formulas::MethodFormulation::DEFAULT);
+                            Formulation formulation = Formulation::DEFAULT);
 
 // -------------------------------------------------------------------------------------
 /*!
@@ -176,34 +205,30 @@ float VirtualTemp_From_Rh_Psat_P_T(float Rh, float Psat, float P, float T,
 * (ICAO) atmosphere.
 *
 * \b Formulation \b available:
-*      - NCAR: as default
-*      - NOAA: as default
-*      - UKMO: as default
-*      - DEFAULT: using ICAO standard
+*      - ICAO: using ICAO standard
 *
 * \param height
 *     observation height in geopotential metres [gpm]
 * \return pressure
 */
 float Height_To_Pressure_ICAO_atmos(float Height,
-                            MethodFormulation formulation = formulas::MethodFormulation::DEFAULT);
+                            Formulation formulation = Formulation::ICAO);
 
 // -------------------------------------------------------------------------------------
 /*!
 * \brief Converts pressure to height.
 *
 * \b Formulation \b available:
-*      - NCAR: uses a fast approximation for pressures > 120 hPa and the ICAO atmosphere otherwise.
-*      - NOAA: as default
-*      - UKMO: as default
-*      - DEFAULT: uses the ICAO atmosphere for all pressures.
+*      - NCARRAL: NCAR-RAL is a fast approximation for pressures > 120 hPa.
+*        Below 120hPa (~15km) use the ICAO atmosphere.
+*      - ICAO: uses the ICAO atmosphere for all pressures (default)
 *
 * \param pressure
 *     observation pressure in Pa
 * \return height in geopotential metres
 */
 float Pressure_To_Height(float pressure,
-                         MethodFormulation formulation = formulas::MethodFormulation::DEFAULT);
+                         Formulation formulation = Formulation::ICAO);
 
 // -------------------------------------------------------------------------------------
 /*!
@@ -308,15 +333,12 @@ int RenumberScanPosition(int scanpos, int numFOV, bool floorRemap);
 * The outputs of the algorithm are placed in the relevant locations in the entire sample.
 *
 * \b Formulations \b available:
-*      - DEFAULT:
+*      - LarocheSarrazin:
 *        Calculation is using Eq. 4. of Laroche and Sarrazin (2013).
 *        Reference: "Laroche, S. and Sarrazin, R.,
 *                   Impact of Radiosonde Balloon Drift on
 *                   Numerical Weather Prediction and Verification,
 *                   Weather and Forecasting, 28(3), 772-782, 2013."
-*      - UKMO: as default
-*      - NCAR: as default
-*      - NOAA: as default
 *
 * \param locs
 *     Vector of locations of the current profile in the entire data sample.
@@ -360,7 +382,7 @@ void horizontalDrift
  std::vector<float> & lat_out,
  std::vector<float> & lon_out,
  std::vector<util::DateTime> & time_out,
- MethodFormulation formulation = formulas::MethodFormulation::DEFAULT,
+ Formulation formulation = Formulation::LarocheSarrazin,
  const util::DateTime * const window_end = nullptr);
 
 // -------------------------------------------------------------------------------------

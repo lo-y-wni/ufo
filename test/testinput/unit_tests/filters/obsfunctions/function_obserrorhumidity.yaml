@@ -78,7 +78,6 @@ observations:
         name: MetaData/pressure
       xvals: [50000]  # Pressure (Pa)
       errors: [0.2]   # RH error
-      Formulation: Sonntag  #formula for sat. vapor pressure
-      Method: UKMO   #method for sat. vapor pressure (equivalent to Formulation: Sonntag)
+      Method: UKMO   # method for sat. vapor pressure (equivalent to Sonntag formulation)
     variables: [specific_humidity_obserr]
     tolerance: 1.0e-9

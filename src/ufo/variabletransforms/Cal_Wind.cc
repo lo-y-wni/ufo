@@ -36,7 +36,7 @@ Cal_WindSpeedAndDirection::Cal_WindSpeedAndDirection(
 void Cal_WindSpeedAndDirection::runTransform(const std::vector<bool> &apply) {
   oops::Log::trace() << " --> Retrieve wind speed and direction"
             << std::endl;
-  oops::Log::trace() << "      --> method: " << method() << std::endl;
+  oops::Log::trace() << "      --> method: " << options_.Method.value() << std::endl;
   oops::Log::trace() << "      --> obsName: " << obsName() << std::endl;
 
   const size_t nlocs = obsdb_.nlocs();
@@ -102,7 +102,7 @@ Cal_WindComponents::Cal_WindComponents(
 void Cal_WindComponents::runTransform(const std::vector<bool> &apply) {
   oops::Log::trace() << " --> Retrieve wind component"
             << std::endl;
-  oops::Log::trace() << "      --> method: " << method() << std::endl;
+  oops::Log::trace() << "      --> method: " << options_.Method.value() << std::endl;
   oops::Log::trace() << "      --> obsName: " << obsName() << std::endl;
 
   // Note that the dimension label "nchans" is being (mis)used here as a second observed

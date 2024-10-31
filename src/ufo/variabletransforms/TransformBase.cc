@@ -18,8 +18,6 @@ TransformBase::TransformBase(const VariableTransformParametersBase& options,
                              const std::shared_ptr<ioda::ObsDataVector<float>>& obserr)
   : options_(options), data_(data) , flags_(*flags), obserr_(*obserr) {
   method_ = formulas::resolveMethods(options.Method.value());
-  formulation_  = formulas::resolveFormulations(options.Formulation.value(),
-                                                options.Method.value());
   UseValidDataOnly_ = options.UseValidDataOnly.value();
   obsName_ = data_.obsspace().obsname();
 }

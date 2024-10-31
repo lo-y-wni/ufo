@@ -35,8 +35,6 @@ class ObsErrorModelHumidityParameters : public oops::Parameters {
   oops::RequiredParameter<std::vector<float>> errors{"errors", this};
   /// Method used for saturated vapor pressure [Optional]
   oops::Parameter<std::string> Method{"Method", "default", this};
-  /// Formulation used for saturated vapor pressure [Optional]
-  oops::Parameter<std::string> Formulation{"Formulation", "", this};
 };
 
 // -----------------------------------------------------------------------------
@@ -62,7 +60,7 @@ class ObsErrorModelHumidityParameters : public oops::Parameters {
 ///   for this function must also follow that of ObsErrorModelStepwiseLinear. One
 ///   modification is to allow size-1 lists of xvals and errors to accommodate the
 ///   situation of fixed input error.
-/// - The method or formulation to compute saturation specific humidity is
+/// - The method to compute saturation specific humidity is
 ///   configurable via YAML. If not specified, the default formula will be used.
 ///
 /// ### example configurations for using this obs function in a filter: ###

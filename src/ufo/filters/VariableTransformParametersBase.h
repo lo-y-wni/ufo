@@ -53,14 +53,9 @@ class VariableTransformParametersBase : public FilterParametersBase {
   oops::RequiredParameter<std::string> Transform{"Transform",
                                                  this};
 
-  /// Method used for calculation [Optional]:
-  /// Related to Met Center - See ReadTheDoc for more details.
+  /// Method or "recipe" used for calculation [Optional]:
+  /// Usually related to Met Center - See ReadTheDoc for more details.
   oops::Parameter<std::string> Method{"Method", "default", this};
-
-  /// Formulation possible [Optional]:
-  /// By default \e formulation is set to \e the Method.
-  /// See ReadTheDoc for more details
-  oops::Parameter<std::string> Formulation{"Formulation", "", this};
 
   /// Should we use only the valid data? [Optional]:
   /// By default \e UseValidDataOnly is set to \e true.

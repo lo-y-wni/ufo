@@ -38,7 +38,7 @@ observations:
   obs filters:
   - filter: Variable Transforms
     Transform: SpecificHumidity   # calculate specific humidity from relative humidity
-    Method: UKMO                  # Using UKMO method and UKMO default formulation 
+    Method: UKMO                  # Using UKMO method
     pressure group variable: "MetaData"
     pressure variable: "pressure"
     pressure at 2m variable: "stationPressure"
@@ -63,8 +63,7 @@ observations:
   obs filters:
   - filter: Variable Transforms
     Transform: SpecificHumidity   # calculate specific humidity from relative humidity
-    Method: UKMO                  # Using UKMO method and UKMO default formulation 
-    Formulation: Sonntag          # Using Sonntag formulation  (whihc is the default formulation for UKMO method)
+    Method: Sonntag                  # Using UKMO method and UKMO default formulation
     pressure group variable: "MetaData"
     pressure variable: "pressure"
     pressure at 2m variable: "stationPressure"
@@ -89,7 +88,7 @@ observations:
   obs filters:
   - filter: Variable Transforms
     Transform: SpecificHumidity    # calculate specific humidity from relative humidity
-    Formulation: Walko
+    Method: Walko
     pressure group variable: "MetaData"
     pressure variable: "pressure"
     pressure at 2m variable: "stationPressure"
@@ -114,7 +113,7 @@ observations:
   obs filters:
   - filter: Variable Transforms
     Transform: SpecificHumidity
-    Formulation: Murphy
+    Method: Murphy
     pressure group variable: "MetaData"
     pressure variable: "pressure"
     pressure at 2m variable: "stationPressure"
@@ -128,3 +127,41 @@ observations:
         name: DerivedObsValue/specificHumidity
       absTol: 1.0e-7
   passedBenchmark: 99
+
+- obs space:
+    name: test_specificHumidity_formulation_exception
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/sfc_obs_2018041500_metars_small2.nc
+    simulated variables: [relativeHumidity, airTemperature, stationPressure]
+  obs filters:
+  - filter: Variable Transforms
+    Transform: SpecificHumidity
+    Formulation: Murphy
+    pressure group variable: "MetaData"
+    pressure variable: "pressure"
+    pressure at 2m variable: "stationPressure"
+    temperature variable: "airTemperature"
+    relative humidity variable: "relativeHumidity"
+    specific humidity variable: "specificHumidity"
+  expectExceptionWithMessage: "Error: YAML validation failed."
+
+- obs space:
+    name: test_specificHumidity_spelling_exception
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/sfc_obs_2018041500_metars_small2.nc
+    simulated variables: [relativeHumidity, airTemperature, stationPressure]
+  obs filters:
+  - filter: Variable Transforms
+    Transform: SpecificHumidity
+    Method: Murphyy
+    pressure group variable: "MetaData"
+    pressure variable: "pressure"
+    pressure at 2m variable: "stationPressure"
+    temperature variable: "airTemperature"
+    relative humidity variable: "relativeHumidity"
+    specific humidity variable: "specificHumidity"
+  expectExceptionWithMessage: "Bad parameter: Unknown method: Murphyy"

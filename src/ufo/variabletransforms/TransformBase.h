@@ -82,8 +82,7 @@ class TransformBase {
   }
 
   /// Method used for the calculation
-  formulas::MethodFormulation method_;
-  formulas::MethodFormulation formulation_;
+  formulas::Method method_;
   bool UseValidDataOnly_;
   /// The observation name
   std::string obsName_;
@@ -206,9 +205,8 @@ class TransformBase {
 
   std::string getDerivedGroup(const std::string group) const;
 
-  /// subclasses to access Method and formualtion used for the calculation
-  formulas::MethodFormulation method() const { return method_; }
-  formulas::MethodFormulation formulation() const { return formulation_; }
+  /// subclasses to access Method used for the calculation
+  formulas::Method method() const { return method_; }
   bool UseValidDataOnly() const { return UseValidDataOnly_; }
   void SetUseValidDataOnly(bool t) {UseValidDataOnly_ = t; }
   /// subclasses to access the observation name

@@ -32,7 +32,7 @@ Cal_ProfileHorizontalDrift::Cal_ProfileHorizontalDrift
 
 void Cal_ProfileHorizontalDrift::runTransform(const std::vector<bool> &apply) {
   oops::Log::trace() << " --> Compute horizontal drift lat/lon/time" << std::endl;
-  oops::Log::trace() << "      --> method: " << method() << std::endl;
+  oops::Log::trace() << "      --> method: " << options_.Method.value() << std::endl;
 
   // Ensure observations have been grouped into profiles.
   if (obsdb_.obs_group_vars().empty())
@@ -87,7 +87,7 @@ void Cal_ProfileHorizontalDrift::runTransform(const std::vector<bool> &apply) {
                               latitude_in, longitude_in, datetime_in,
                               height, wind_speed, wind_from_direction,
                               latitude_out, longitude_out, datetime_out,
-                              formulas::MethodFormulation::UKMO,
+                              formulas::Formulation::LarocheSarrazin,
                               keep_in_window_ ? &windowEnd : nullptr);
   }
 

@@ -73,8 +73,17 @@ void Cal_HeightFromPressure::runTransform(const std::vector<bool> &apply) {
       // Cycle if geopotential height is valid
       if (geopotentialHeight[rSort[ilocs]] != missingValueFloat) continue;
 
+      formulas::Formulation formulation = formulas::Formulation::ICAO;
+      switch (method())
+      {
+        case formulas::Method::NCAR:
+          formulation = formulas::Formulation::NCARRAL;
+          break;
+        default:
+          break;
+      }
       geopotentialHeight[rSort[ilocs]] = formulas::Pressure_To_Height(
-          airPressure[rSort[ilocs]], method());
+          airPressure[rSort[ilocs]], formulation);
 
       hasBeenUpdated = true;
     }

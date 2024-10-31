@@ -31,7 +31,7 @@ Cal_QNHtoQFEpressure::Cal_QNHtoQFEpressure(
 void Cal_QNHtoQFEpressure::runTransform(const std::vector<bool> &apply) {
   oops::Log::trace() << " --> Retrieve QFE (pressure reduced to official aerodrome altitude)"
             << std::endl;
-  oops::Log::trace() << "      --> method: " << method() << std::endl;
+  oops::Log::trace() << "      --> method: " << options_.Method.value() << std::endl;
   oops::Log::trace() << "      --> obsName: " << obsName() << std::endl;
 
   const size_t nlocs = obsdb_.nlocs();

@@ -28,7 +28,7 @@ Cal_RemapScanPosition::Cal_RemapScanPosition(
 void Cal_RemapScanPosition::runTransform(const std::vector<bool> &apply) {
   oops::Log::trace() << " --> Renumber satellite scan position"
             << std::endl;
-  oops::Log::trace() << "      --> method: " << method() << std::endl;
+  oops::Log::trace() << "      --> method: " << options_.Method.value() << std::endl;
   oops::Log::trace() << "      --> obsName: " << obsName() << std::endl;
 
   const size_t nlocs = obsdb_.nlocs();

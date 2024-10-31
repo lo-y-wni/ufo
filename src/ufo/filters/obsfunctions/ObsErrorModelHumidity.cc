@@ -121,8 +121,23 @@ void ObsErrorModelHumidity::compute(const ObsFilterData & data,
   std::vector<double> pressure_gval(nlevs, 0.0), logp(nlevs);
 
   // Get formulation for saturated vapor pressure
-  formulas::MethodFormulation formulation;
-  formulation = formulas::resolveFormulations(options_.Formulation, options_.Method);
+  formulas::Formulation formulation = formulas::Formulation::DEFAULT;
+  switch (formulas::resolveMethods(options_.Method)) {
+    case formulas::Method::UKMO:
+      formulation = formulas::Formulation::Sonntag;
+      break;
+    case formulas::Method::UKMOmixingratio:
+      formulation = formulas::Formulation::GoffGratchLandoltBornsteinIceWater;
+      break;
+    case formulas::Method::NCAR:
+      formulation = formulas::Formulation::Rogers;
+      break;
+    case formulas::Method::NOAA:
+      formulation = formulas::Formulation::Rogers;
+      break;
+    default:
+      break;
+  }
 
   // Linearly interpolate from y0 to y1 at xstar between x0 and x1 to arrive at error
   float x0, x1, y0, y1;
@@ -197,7 +212,7 @@ void ObsErrorModelHumidity::compute(const ObsFilterData & data,
     ufo::PiecewiseLinearInterpolation vert_interp_model(logp, airTemperature_gval);
     temp = vert_interp_model(logp_ob);
 
-    // Calculate saturated vapor pressure using selected method/formulation
+    // Calculate saturated vapor pressure using selected formulation
     satVaporPres = formulas::SatVaporPres_fromTemp(temp, formulation);
 
     // Convert saturated vapor pressure to saturation specific humidity

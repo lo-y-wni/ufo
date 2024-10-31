@@ -39,7 +39,7 @@ Cal_SatBrightnessTempFromRad::Cal_SatBrightnessTempFromRad(
 void Cal_SatBrightnessTempFromRad::runTransform(const std::vector<bool> &apply) {
   oops::Log::trace() << " --> convert input array to brightness temperature"
             << std::endl;
-  oops::Log::trace() << "      --> method: " << method() << std::endl;
+  oops::Log::trace() << "      --> method: " << options_.Method.value() << std::endl;
   oops::Log::trace() << "      --> obsName: " << obsName() << std::endl;
 
   // Read in radiance to be corrected

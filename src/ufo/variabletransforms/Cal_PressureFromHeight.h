@@ -55,7 +55,7 @@ class Cal_PressureFromHeightForProfile : public TransformBase {
 
  private:
   // list of specific implementation(s) - This is controlled by "method"
-  void methodUKMO(const std::vector<bool> &apply);
+  void methodDEFAULT(const std::vector<bool> &apply);
 
   /// Height coordinate name.
   std::string heightCoord_;
@@ -87,7 +87,7 @@ class Cal_PressureFromHeightForICAO : public TransformBase {
 
  private:
   // list of specific implementation(s) - This is controlled by "method"
-  void methodUKMO(const std::vector<bool> &apply);
+  void methodDEFAULT(const std::vector<bool> &apply);
 
   /// Height coordinate name.
   std::string heightCoord_;

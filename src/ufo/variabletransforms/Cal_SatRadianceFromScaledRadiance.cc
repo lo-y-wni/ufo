@@ -44,7 +44,7 @@ Cal_SatRadianceFromScaledRadiance::Cal_SatRadianceFromScaledRadiance(
 void Cal_SatRadianceFromScaledRadiance::runTransform(const std::vector<bool> &apply) {
   oops::Log::trace() << " --> convert input array to brightness temperature"
             << std::endl;
-  oops::Log::trace() << "      --> method: " << method() << std::endl;
+  oops::Log::trace() << "      --> method: " << options_.Method.value() << std::endl;
   oops::Log::trace() << "      --> obsName: " << obsName() << std::endl;
 
   size_t numScaleFactors = parameters_.numScaleFactors.value();
