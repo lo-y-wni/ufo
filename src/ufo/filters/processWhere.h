@@ -99,31 +99,36 @@ class WhereParameters : public oops::Parameters {
   oops::Parameter<bool> minExclusive{"min_exclusive", false, this};
   oops::Parameter<bool> maxExclusive{"max_exclusive", false, this};
 
-  /// Select locations at which the condition variable takes one of the specified values. For
-  /// integer variables, this can be an integer, range of integers (e.g. `3-5`) or a
-  /// comma-separated list of integers and/or ranges (e.g. `3-5, 7-8, 10`). For string variables,
-  /// this should be a bracketed list of strings (e.g. `[abc, def]`);
+  /// Select locations at which the condition variable takes one of the specified values. Takes
+  /// either integer or string values as input. For integer variables, this can be an integer,
+  /// range of integers or a comma-separated list of integers and/or ranges
+  /// (e.g. `3-5, 7-8, 10`). Single integers and ranges may be bracketed or unbracketed
+  /// (e.g. `1000` or `[1000]`, `3-5` or `[3-5]`), and integer lists must be unbracketed. For
+  /// string variables, this should be a bracketed list of strings. Strings may be either
+  /// quoted or unquoted (e.g. `[abc, def]` or `['abc','def']`);
   oops::OptionalParameter<util::AnyOf<std::set<int>, std::vector<std::string>>> isIn{
     "is_in", this};
 
   /// Select locations at which the condition variable is within tolerance to specified values.
-  /// For float variables, this should be a bracketed list of floats (e.g. `[0.0, 0.5]`)
-  /// which are compared within a tolerance.  A tolerance must be provided by the user and is a
-  /// float either called absolute_tolerance or relative_tolerance (see above);
+  /// Input should be a bracketed list of floats (e.g. `[0.0, 0.5]`) which are compared
+  /// within a tolerance. A tolerance must be provided by the user and is a float either
+  /// called absolute_tolerance or relative_tolerance (see above);
   oops::OptionalParameter<std::vector<float>> isClose{"is_close_to_any_of", this};
 
-  /// Select locations at which the condition variable does not take any of the specified values.
-  /// For integer variables, this can be an integer, range of integers (e.g. `3-5`) or a
-  /// comma-separated list of integers and/or ranges (e.g. `3-5, 7-8, 10`). For string variables,
-  /// this should be a bracketed list of strings (e.g. `[abc, def]`);
+  /// Select locations at which the condition variable takes one of the specified values. Takes
+  /// either integer or string values as input. For integer variables, this can be an integer,
+  /// range of integers or a comma-separated list of integers and/or ranges
+  /// (e.g. `3-5, 7-8, 10`). Single integers and ranges may be bracketed or unbracketed
+  /// (e.g. `1000` or `[1000]`, `3-5` or `[3-5]`), and integer lists must be unbracketed. For
+  /// string variables, this should be a bracketed list of strings. Strings may be either
+  /// quoted or unquoted (e.g. `[abc, def]` or `['abc','def']`);
   oops::OptionalParameter<util::AnyOf<std::set<int>, std::vector<std::string>>> isNotIn{
     "is_not_in", this};
 
   /// Select locations at which the condition variable is not within tolerance of the
-  /// specified values. For float variables, this should be a bracketed list of floats
-  /// (e.g. `[0.0, 0.5]`) which are compared within a tolerance  A tolerance must be
-  /// provided by the user and is a float either called absolute_tolerance or
-  /// relative_tolerance (see above);
+  /// specified values. Input should be a bracketed list of floats (e.g. `[0.0, 0.5]`)
+  /// which are compared within a tolerance. A tolerance must be provided by the user
+  /// and is a float either called absolute_tolerance or relative_tolerance (see above);
   oops::OptionalParameter<std::vector<float>> isNotClose{"is_not_close_to_any_of", this};
 
   /// Select locations at which the condition variable is:
