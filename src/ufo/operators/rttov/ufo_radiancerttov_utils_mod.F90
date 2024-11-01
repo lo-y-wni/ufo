@@ -11,7 +11,7 @@ module ufo_radiancerttov_utils_mod
   use, intrinsic :: iso_fortran_env, only : stderr=>error_unit, &
                                             stdout=>output_unit
 
-  use datetime_mod, only : datetime, datetime_to_yyyymmddhhmmss
+  use datetime_mod, only : datetime, datetime_to_yyyymmddhhmmss, datetime_delete
   use fckit_configuration_module, only : fckit_configuration
   use fckit_exception_module, only: fckit_exception
   use fckit_log_module, only : fckit_log
@@ -1020,7 +1020,9 @@ contains
           profiles(iprof) % date = (/year, month, day/)
           profiles(iprof) % time = (/hour, minute, second/)
         end do
-        deallocate(date_temp)
+        do iprof=1, nprofiles
+          call datetime_delete(date_temp(iprof))
+        end do
       else
         message = 'Warning: Optional input Date/Time not in database'
         call fckit_log%info(message)
