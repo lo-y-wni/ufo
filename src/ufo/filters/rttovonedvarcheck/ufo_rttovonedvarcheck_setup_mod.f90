@@ -63,6 +63,7 @@ type, public :: ufo_rttovonedvarcheck
   logical                          :: pcemiss !< flag gets turned on if emissivity eigen vector file is present
   logical                          :: mwEmissRetrieval !< if true do emissivity retrival using the mwemiss method
   logical                          :: skinTemperatureFromObsSpace !< flag to get the first skin temperature from the obs space
+  logical                          :: DoCloudyChannelRejection !< flag to reject channels based on cloud analysis
   integer                          :: Max1DVarIterations !< maximum number of iterations
   integer                          :: JConvergenceOption !< integer to select convergence option
   integer                          :: IterNumForLWPCheck !< choose which iteration to start checking LWP
@@ -193,6 +194,9 @@ call f_conf % get_or_die("FullDiagnostics", self % FullDiagnostics)
 ! Flag to read the intial skin temperature from the obsspace
 call f_conf % get_or_die("set the initial skin temperature from the obsspace", &
                          self % skinTemperatureFromObsSpace)
+
+! Flag to reject channels based on cloud analysis
+call f_conf % get_or_die("DoCloudyChannelRejection", self % DoCloudyChannelRejection)
 
 ! maximum number of iterations allowed
 call f_conf % get_or_die("Max1DVarIterations", self % Max1DVarIterations)

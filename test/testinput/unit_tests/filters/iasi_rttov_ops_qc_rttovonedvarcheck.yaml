@@ -147,6 +147,7 @@ observations:
     - emissivity_pc # 18
     nlevels: 70
     UseMLMinimization: true
+    DoCloudyChannelRejection: true
     defer to post: true
     Max1DVarIterations: 10
     MaxMLIterations: 10
@@ -267,6 +268,7 @@ observations:
     set the initial skin temperature from the obsspace: true
     nlevels: 70
     UseMLMinimization: true
+    DoCloudyChannelRejection: true
     defer to post: true
     Max1DVarIterations: 10
     MaxMLIterations: 10
@@ -332,6 +334,7 @@ observations:
     set the initial skin temperature from the obsspace: true
     nlevels: 70
     UseMLMinimization: true
+    DoCloudyChannelRejection: true
     defer to post: true
     Max1DVarIterations: 10
     MaxMLIterations: 10

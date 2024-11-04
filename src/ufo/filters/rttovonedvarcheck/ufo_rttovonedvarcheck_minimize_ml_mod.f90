@@ -428,8 +428,10 @@ if (converged) then
   if(config % cloud_retrieval .and. ob % cloudtopp > zero .and. &
     ob % cloudfrac > 0.05_kind_real) then
     call ufo_rttovonedvarcheck_ctp_error(geovals, r_matrix, profile_index, H_matrix, ob)
-    call ufo_rttovonedvarcheck_cloudy_channel_rejection( &
-         config, profile_index, geovals, H_matrix, ob)
+    if (config % DoCloudyChannelRejection) then
+      call ufo_rttovonedvarcheck_cloudy_channel_rejection( &
+           config, profile_index, geovals, H_matrix, ob)
+    end if
   end if
 end if
 

@@ -166,6 +166,9 @@ class RTTOVOneDVarCheckParameters : public FilterParametersBase {
   oops::Parameter<bool> SetInitialSkinTFromObsSpace{
       "set the initial skin temperature from the obsspace", false, this};
 
+  /// Reject channels based on 1D-Var cloud analysis
+  oops::Parameter<bool> DoCloudyChannelRejection{"DoCloudyChannelRejection", false, this};
+
   /// Turn on extra diagnostics
   oops::Parameter<bool> FullDiagnostics{"FullDiagnostics", false, this};
 
