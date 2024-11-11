@@ -102,6 +102,32 @@ observations:
       absTol: 1.0e-5
   passedBenchmark: 99
 
+# Test the zero obs on a MPI task
+- obs space:
+    name: Single observation for methodDefault (for execution on multiple MPI tasks)
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/sfc_obs_2018041500_metars_oneob.nc4
+    simulated variables: [specificHumidity, airTemperature, stationPressure]
+  obs filters:
+  - filter: Variable Transforms
+    Transform: RelativeHumidity # calculate relative humidity from specific humidity (also T, P)
+                                # using Default method and default Formulation (Roger 1989)
+    specific humidity variable: specificHumidity
+    temperature variable: airTemperature
+    pressure variable: air_pressure
+    pressure at 2m variable: stationPressure
+    relative humidity variable: relativeHumidity
+    SkipWhenNoObs: false
+  compareVariables:             # test output matches precalculated values
+    - reference:
+        name: TestReference/relative_humidity_NOAA
+      test:
+        name: DerivedObsValue/relativeHumidity
+      absTol: 1.0e-5
+  passedBenchmark: 3      # (1 sites with 3 vars listed in simulated variables)
+
 # Exercise the method using the Murphy saturation vapor pressure method.
 - obs space:
     name: test_relative_humidity_formulation_exception

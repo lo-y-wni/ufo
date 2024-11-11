@@ -99,7 +99,7 @@ Method: -
    values or are missing, the relative humidity is set to missing data.
 */
 void Cal_RelativeHumidity::methodUKMO(const std::vector<bool> &apply) {
-  const size_t nlocs_ = obsdb_.nlocs();
+  const size_t nlocs = obsdb_.nlocs();
 
   float Q_sub_s_w_ice, Q_sub_s_w;
   float pressure, temperature, dewPoint;
@@ -108,7 +108,6 @@ void Cal_RelativeHumidity::methodUKMO(const std::vector<bool> &apply) {
   std::vector<float> relativeHumidity;
   std::vector<float> airPressure;
   bool surfaceData = true;
-  bool hasBeenUpdated = false;
 
   // Here we can only use data that have not been rejected by quality control
   // so making sure UseValidDataOnly_ is set to True
@@ -145,7 +144,7 @@ void Cal_RelativeHumidity::methodUKMO(const std::vector<bool> &apply) {
     surfaceData = false;
   }
   if (relativeHumidity.empty()) {
-    relativeHumidity.assign(nlocs_, missingValueFloat);
+    relativeHumidity.assign(nlocs, missingValueFloat);
   }
 
   // 2. making sure we have what we need is here
@@ -224,7 +223,6 @@ void Cal_RelativeHumidity::methodUKMO(const std::vector<bool> &apply) {
           relativeHumidity[iloc] = (Q_sub_s_w / Q_sub_s_w_ice) * 100.0;
           if (!allowSuperSaturation_)
             relativeHumidity[iloc] = std::min(100.0f, relativeHumidity[iloc]);
-          hasBeenUpdated = true;
         }
       // if relative humidity (Rh) is reported (small minority of stations)
       // update from Rh over water (reported) to Rh over ice if necessary
@@ -239,18 +237,15 @@ void Cal_RelativeHumidity::methodUKMO(const std::vector<bool> &apply) {
           if (!allowSuperSaturation_)
             relativeHumidity[iloc] = std::min(100.0f, relativeHumidity[iloc]);
         }
-        hasBeenUpdated = true;
       }
     }
   }
 
   // assign the derived relative humidity as DerivedObsValue
-  if (hasBeenUpdated) {
-    if (surfaceData) {
-      putObservation(relativehumidityat2mvariable_, relativeHumidity);
-    } else {
-      putObservation(relativehumidityvariable_, relativeHumidity);
-    }
+  if (surfaceData) {
+    putObservation(relativehumidityat2mvariable_, relativeHumidity);
+  } else {
+    putObservation(relativehumidityvariable_, relativeHumidity);
   }
 }
 
@@ -278,17 +273,12 @@ Method: -
   \endcode
 */
 void Cal_RelativeHumidity::methodUKMOmixingratio(const std::vector<bool> &apply) {
-  const size_t nlocs_ = obsdb_.nlocs();
-  // Return if no data
-  if (obsdb_.nlocs() == 0) {
-    return;
-  }
+  const size_t nlocs = obsdb_.nlocs();
 
   std::vector<float> airTemperature;
   std::vector<float> mixingRatio;
   std::vector<float> relativeHumidity;
   std::vector<float> airPressure;
-  bool hasBeenUpdated = false;
 
   // Here we can only use data that has not been rejected by quality control
   // so making sure UseValidDataOnly_ is set to True
@@ -305,7 +295,7 @@ void Cal_RelativeHumidity::methodUKMOmixingratio(const std::vector<bool> &apply)
                  relativeHumidity);
 
   if (relativeHumidity.empty()) {
-    relativeHumidity.assign(nlocs_, missingValueFloat);
+    relativeHumidity.assign(nlocs, missingValueFloat);
   }
 
   if (!oops::allVectorsSameSize(airPressure, airTemperature, mixingRatio)) {
@@ -349,7 +339,6 @@ void Cal_RelativeHumidity::methodUKMOmixingratio(const std::vector<bool> &apply)
         } else {
           relativeHumidity[iloc] = missingValueFloat;
         }
-        hasBeenUpdated = true;
         if (relativeHumidity[iloc] != missingValueFloat &&
             !allowSuperSaturation_) {
           relativeHumidity[iloc] = std::min(100.0f, relativeHumidity[iloc]);
@@ -358,9 +347,7 @@ void Cal_RelativeHumidity::methodUKMOmixingratio(const std::vector<bool> &apply)
     }
   }
   // Assign the derived relative humidity as DerivedObsValue
-  if (hasBeenUpdated) {
-    putObservation(relativehumidityvariable_, relativeHumidity);
-  }
+  putObservation(relativehumidityvariable_, relativeHumidity);
 }
 
 /**************************************************************************************************/
@@ -423,7 +410,6 @@ void Cal_RelativeHumidity::methodDEFAULT(
       relativeHumidity[jobs] = std::max(1.0e-6f, qv/qvs);
     }
   }
-
   putObservation(relativehumidityvariable_, relativeHumidity);
 }
 
@@ -444,8 +430,8 @@ Cal_SpecificHumidity::Cal_SpecificHumidity(
       pressureat2mvariable_(options.PressureAt2MVariable),
       pressuregroupvariable_(options.PressureGroupVariable),
       temperaturevariable_(options.TemperatureVariable),
-      dewpointtemperaturevariable_(options.DewPointTemperatureVariable),
-      relativehumidityvariable_(options.RelativeHumidityVariable)
+      relativehumidityvariable_(options.RelativeHumidityVariable),
+      dewpointtemperaturevariable_(options.DewPointTemperatureVariable)
 {}
 
 /************************************************************************************/
@@ -581,7 +567,6 @@ void Cal_SpecificHumidity::methodDEFAULT(
       }
     }
   }
-
   putObservation(specifichumidityvariable_, specificHumidity);
 }
 
@@ -598,8 +583,8 @@ Cal_VirtualTemperature::Cal_VirtualTemperature(
     const std::shared_ptr<ioda::ObsDataVector<int>> &flags,
     const std::shared_ptr<ioda::ObsDataVector<float>> &obserr)
   : TransformBase(options, data, flags, obserr),
-      temperaturevariable_(options.TemperatureVariable),
       specifichumidityvariable_(options.SpecificHumidityVariable),
+      temperaturevariable_(options.TemperatureVariable),
       virtualtempvariable_(options.VirtualTempVariable)
 {}
 
@@ -656,7 +641,6 @@ void Cal_VirtualTemperature::methodDEFAULT(const std::vector<bool> &apply) {
       virtualTemperature[jobs] = airTemperature[jobs]*(1.0f + 0.61f*qv);
     }
   }
-
   putObservation(virtualtempvariable_, virtualTemperature);
 }
 

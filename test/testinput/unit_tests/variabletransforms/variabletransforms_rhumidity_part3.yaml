@@ -69,3 +69,38 @@ observations:
       test:
         name: DerivedObsValue/relativeHumidity
       relTol: 1.0e-5
+- obs space:
+    name: RH mixing ratio calculation, single observation (for execution on multiple MPI ranks)
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/mixRatio2RH_conversion_aircraft_oneob.nc4
+      obsgrouping:
+        group variables: ["stationIdentification"]
+        sort variable: "dateTime"
+        sort order: "descending"
+    simulated variables: [airTemperature, waterVaporMixingRatio]
+  obs filters:
+  - filter: Perform Action
+    filter variables:
+    - name: airTemperature
+    - name: waterVaporMixingRatio
+    action:
+      name: assign error
+      error parameter: 1.0
+  - filter: Variable Transforms
+    Transform: RelativeHumidity
+    Method: UKMOmixingratio
+    AllowSuperSaturation: true
+    pressure variable: "pressure"
+    temperature variable: "airTemperature"
+    relative humidity variable: "relativeHumidity"
+    water vapor mixing ratio variable: "waterVaporMixingRatio"
+    SkipWhenNoObs: false
+  compareVariables:
+    - reference:
+        name: TestReference/relativeHumidity
+      test:
+        name: DerivedObsValue/relativeHumidity
+      relTol: 1.0e-5
+

@@ -78,3 +78,43 @@ observations:
       absTol: 1.0e-4
 
   passedBenchmark: 135
+
+# Test code works when one MPI rank does not have any observations
+
+observations:
+- obs space:
+    name: virtual temperature calculation, single observation (for execution on multiple MPI ranks)
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/2020100106_metars_small_oneob.nc4
+    # obsdataout:
+#       engine:
+#         type: H5File
+#         obsfile: Data/metar_test.nc
+    simulated variables: [airTemperature, specificHumidity, virtualTemperature]
+    derived variables: [virtualTemperature]
+    observed variables: [airTemperature, specificHumidity]
+  obs filters:
+  - filter: Variable Transforms
+    Transform: "VirtualTemperature"
+    specific humidity variable: specificHumidity
+    temperature variable: airTemperature
+    virtual temperature variable: virtualTemperature
+    SkipWhenNoObs: false
+
+  - filter: Perform Action
+    filter variables:
+    - name: virtualTemperature
+    action:
+      name: assign error
+      error parameter: 2.2
+
+  compareVariables:               # test output matches precalculated values
+    - reference:
+        name: TestReference/virtualTemperature
+      test:
+        name: DerivedObsValue/virtualTemperature
+      absTol: 1.0e-4
+
+  passedBenchmark: 3
