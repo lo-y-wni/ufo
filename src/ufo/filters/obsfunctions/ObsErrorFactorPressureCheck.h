@@ -49,6 +49,32 @@ class ObsErrorFactorPressureCheckParameters : public oops::Parameters {
   /// Example: To request saturation specific humidity from geovals
   ///          request_saturation_specific_humidity_geovals: true
   oops::Parameter<bool> requestQSat{"request_saturation_specific_humidity_geovals", false, this};
+
+  /// Surface wind obs are not reported with observation height (ZOB) in bufr/ioda,
+  /// but there is MetaData/stationElevation. The SetSfcWndObsHeight parameter
+  /// can be specified along with a user defined zob value (AssumedSfcWndObsHeight).
+  ///
+  /// Typically, obs_height = dstn + AssumedSfcWndObsHeight;
+  /// where AssumedSfcWndObsHeight = 10 m and dstn is sationElevation, but there
+  /// are exceptions. Therefore, there are additional options that can be used to
+  /// change how the obs_height value is calculated as follows.
+  ///
+  /// 1) Default (no flags set):
+  ///    obs_height = AssumedSfcWndObsHeight;
+  ///
+  /// 2) AddObsHeightToStationElevation: true
+  ///    obs_height = dstn + AssumedSfcWndObsHeight;
+  ///
+  /// 3) UseStationElevationAsObsHeight: true
+  ///    obs_height = dstn;
+  ///    dstn = 0;
+
+  oops::Parameter<bool> SetSfcWndObsHeight{"SetSfcWndObsHeight", false, this};
+  oops::Parameter<bool> AddObsHeightToStationElevation{
+      "AddObsHeightToStationElevation", false, this};
+  oops::Parameter<bool> UseStationElevationAsObsHeight{
+      "UseStationElevationAsObsHeight", false, this};
+  oops::Parameter<float> AssumedSfcWndObsHeight{"AssumedSfcWndObsHeight", 0.0f, this};
 };
 
 /// This filter is to check an observation’s vertical relative positionn with

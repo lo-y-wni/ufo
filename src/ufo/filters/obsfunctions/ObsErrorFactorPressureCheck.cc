@@ -200,9 +200,16 @@ void ObsErrorFactorPressureCheck::compute(const ObsFilterData & data,
   bool iflag_print_negone = true;
   std::vector<double> logprsl_double(nlevs);
   double errorx;
+  const bool SetSfcWndObsHeight = options_->SetSfcWndObsHeight.value();
+  const bool AddObsHeightToStationElevation = options_->AddObsHeightToStationElevation.value();
+  const bool UseStationElevationAsObsHeight = options_->UseStationElevationAsObsHeight.value();
+  const float AssumedSfcWndObsHeight = options_->AssumedSfcWndObsHeight.value();
 
   for (size_t iv = 0; iv < nvars; ++iv) {   // Variable loop
     for (size_t iloc = 0; iloc < nlocs; ++iloc) {
+      if (qcflagdata[iloc] != 0) {
+        continue;
+      }
 ///   To determine the observation's relative location by pressure or
 ///   geometric height.  Default: pressure.
 
@@ -216,6 +223,21 @@ void ObsErrorFactorPressureCheck::compute(const ObsFilterData & data,
 ///   the reported pressure is used instead.
       if (inflatevars.compare("windEastward") == 0 ||
           inflatevars.compare("windNorthward") == 0) {
+        // Surface wind obs are not reported with observation height (ZOB).
+        // Most ob heights will be stationElevation +10m, but there are special cases.
+        if (SetSfcWndObsHeight) {
+          // Set observation height to user defined AssumedSfcWndObsHeight by default.
+          obs_height[iloc] = AssumedSfcWndObsHeight;
+          if (AddObsHeightToStationElevation) {
+            // In most cases, add user defined AssumedSfcWndObsHeight to stationElevation.
+            obs_height[iloc] = AssumedSfcWndObsHeight + dstn[iloc];
+          }
+          if (UseStationElevationAsObsHeight) {
+            // In some cases, zero out dstn and use dstn as obs_height.
+            obs_height[iloc] = dstn[iloc];
+            dstn[iloc] = 0.0f;
+          }
+        }
         if (itype[iloc] >= 280 && itype[iloc] < 300) {
           reported_height = true;
         } else if ((itype[iloc] >= 221 && itype[iloc] <= 229) || (itype[iloc] == 261)) {
@@ -254,7 +276,8 @@ void ObsErrorFactorPressureCheck::compute(const ObsFilterData & data,
           termrg = (termg/grav)*termr;
 
           for (size_t k = 0 ; k < nlevs ; ++k) {
-            zges_mh[k] = (termr*zges[k][iloc]) / (termrg-zges[k][iloc]);
+            zges_mh[k] = zges[k][iloc] - zsges[iloc];
+            zges_mh[k] = (termr*zges_mh[k]) / (termrg-zges_mh[k]);
           }
         }
 
@@ -323,18 +346,16 @@ void ObsErrorFactorPressureCheck::compute(const ObsFilterData & data,
       rlow = std::max(sfcchk-dpres, 0.0f);
       rhgh = std::max(dpres-0.001f- static_cast<float>(nlevs)-1.0f, 0.0f);
       obserr[iv][iloc] = 1.0;
-      if (qcflagdata[iloc] == 0) {
-          if (inflatevars.compare("specificHumidity") == 0) {
-              errorx = (adjustErr[iloc]+drpx)*sat_specific_humidity;
-              errorx = std::max(0.0001, errorx);
-              obserr[iv][iloc] = (errorx + (1.e6*rhgh)+(infl_coeff*rlow)) /(currentObserr[iloc]);
-          } else {
-              obserr[iv][iloc] = (currentObserr[iloc]+drpx+1.e6*rhgh+infl_coeff*rlow)
-                                /currentObserr[iloc];
-          }
-          if (dpres > nlevs) obserr[iv][iloc]=1.e20f;
-          if ((itype[iloc] >= 221 && itype[iloc] <= 229) && dpres < 0.0f) obserr[iv][iloc]=1.e20f;
-     }
+      if (inflatevars.compare("specificHumidity") == 0) {
+          errorx = (adjustErr[iloc]+drpx)*sat_specific_humidity;
+          errorx = std::max(0.0001, errorx);
+          obserr[iv][iloc] = (errorx + (1.e6*rhgh)+(infl_coeff*rlow)) /(currentObserr[iloc]);
+      } else {
+          obserr[iv][iloc] = (currentObserr[iloc]+drpx+1.e6*rhgh+infl_coeff*rlow)
+                            /currentObserr[iloc];
+      }
+      if (dpres > nlevs) obserr[iv][iloc]=1.e20f;
+      if ((itype[iloc] >= 221 && itype[iloc] <= 229) && dpres < 0.0f) obserr[iv][iloc]=1.e20f;
     }
   }
 }
