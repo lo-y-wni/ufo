@@ -314,7 +314,7 @@ case ("GSI")
       if ( (obs_tv(iobs) /= missing) .and. (obs_tv(iobs) > 150.0_kind_real .and.  obs_tv(iobs) < 350.0_kind_real)) then
          avg_tv(iobs) = (model_tvs(iobs) + obs_tv(iobs)) / 2.0_kind_real
       else
-          if (obs_psfc(iobs) /= missing .and. obs_height(iobs) /= missing) then
+          if (obs_psfc(iobs) /= missing .and. obs_height(iobs) /= missing .and. model_p%vals(1,iobs) /= missing) then
             ! If observed temperature is missing,
             ! extrapolate model temperature to obs_height
             call vert_interp_weights(model_p%nval, log(obs_psfc(iobs)), log(model_p%vals(:,iobs)), wi, wf)
