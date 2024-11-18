@@ -333,6 +333,8 @@ set ( filters_files
       obsfunctions/SurfaceCloudModelLevelCBH.h
       obsfunctions/TropopauseEstimate.cc
       obsfunctions/TropopauseEstimate.h
+      obsfunctions/TropopauseHeight.cc
+      obsfunctions/TropopauseHeight.h
       obsfunctions/WindDirAngleDiff.cc
       obsfunctions/WindDirAngleDiff.h
       obsfunctions/WindUVfromObsSpdHofxDir.cc

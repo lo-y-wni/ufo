@@ -69,6 +69,8 @@ struct Constants {
   static constexpr double euzc_1         = -0.39;        // constant for estimating euphotic layer
   static constexpr double epsilon        = 0.62198;      // Ratio of molecular weight of
                                                          //       water and dry air
+  static constexpr double trop_lapse_rate   = 0.002;   // Lapse rate of tropopause (K/m)
+                                                       // according to WMO definition
 
   // International Civil Aviation Organization (ICAO) atmosphere.
   // https://en.wikipedia.org/wiki/International_Standard_Atmosphere#ICAO_Standard_Atmosphere

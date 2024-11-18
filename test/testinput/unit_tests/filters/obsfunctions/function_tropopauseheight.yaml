@@ -1,0 +1,52 @@
+time window:
+  begin: 2019-01-01T00:00:00Z
+  end: 2022-01-15T03:00:00Z
+
+observations:
+- obs space:
+    name: GeoCloud
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/tropopauseheight_testdata.nc4
+    simulated variables: [brightnessTemperature]
+    channels: 5, 6, 7, 9, 10, 11
+#   obsdataout:
+#     engine:
+#       type: H5File
+#       obsfile: Data/ufo/testinput_tier_1/tropopauseheight_testdata_out.nc4  
+  geovals:
+    filename: Data/ufo/testinput_tier_1/tropopauseheight_testdata_geovals.nc4
+  obs filters:
+    - filter: Variable Assignment
+      assignments:
+        - name: MetaData/tropopauseLevel
+          type: int
+          function:
+            name: IntObsFunction/TropopauseHeight
+            options:
+              model pressure: air_pressure
+              model specific humidity: water_vapor_mixing_ratio_wrt_moist_air
+              model temperature: air_temperature
+    - filter: Variable Assignment
+      assignments:
+        - name: MetaData/tropopauseLevelRH
+          type: int
+          function:
+            name: IntObsFunction/TropopauseHeight
+            options:
+              model pressure: air_pressure
+              model specific humidity: water_vapor_mixing_ratio_wrt_moist_air
+              model temperature: air_temperature
+              rhmethod: true
+  compareVariables:
+    - reference:
+        name: TestReference/tropopauseLevel
+      test:
+        name: MetaData/tropopauseLevel
+      absTol: 1.0e-4
+    - reference:
+        name: TestReference/tropopauseLevelRH
+      test:
+        name: MetaData/tropopauseLevelRH
+      absTol: 1.0e-4
