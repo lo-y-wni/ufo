@@ -289,7 +289,7 @@ subroutine vertinterp_simobs_(self, geovals, obss, nvars, nlocs, hofx)
     allocate(obsvcoord_backup(nlocs))
     call obsspace_get_db(obss, self%o_v_group_backup, self%o_v_coord_backup, obsvcoord_backup)
 
-    ! Get the backup coorindate from the model
+    ! Get the backup coordinate from the model
     call ufo_geovals_get_var(geovals, self%v_coord_backup, vcoordprofile_backup)
 
     ! Loop over observations and use backup if necessary

@@ -247,8 +247,10 @@ subroutine vertinterp_tlad_settraj_(self, geovals, obss)
   call self%cleanup()
 
   ! Get pressure profiles from geovals
-  call ufo_geovals_get_var(geovals, self%v_coord, vcoordprofile)
-  self%nval = vcoordprofile%nval
+  if (.not. self%use_constant_vcoord) then
+     call ufo_geovals_get_var(geovals, self%v_coord, vcoordprofile)
+     self%nval = vcoordprofile%nval
+  end if
 
   ! Get the observation vertical coordinates
   self%nlocs = obsspace_get_nlocs(obss)
