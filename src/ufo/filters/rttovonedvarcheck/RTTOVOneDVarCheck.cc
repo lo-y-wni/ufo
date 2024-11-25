@@ -106,14 +106,6 @@ void RTTOVOneDVarCheck::applyFilter(const std::vector<bool> & apply,
                                std::vector<std::vector<bool>> &) const {
   oops::Log::trace() << "RTTOVOneDVarCheck Filter starting" << std::endl;
 
-// Get air_pressure for first ob to check they are top to bottom
-  const ufo::GeoVaLs * gvals = data_.getGeoVaLs();
-  const size_t nlevels = gvals->nlevs(oops::Variable{"air_pressure"});
-  std::vector<double> airPressureObOne(nlevels);
-  gvals->getAtLocation(airPressureObOne, oops::Variable{"air_pressure"}, 0);
-  if (airPressureObOne.front() >= airPressureObOne.back())
-    throw eckit::BadValue("GeoVaLs are not top to bottom => aborting");
-
 // Create oops variable with the list of channels
   oops::Variables variables = filtervars.toOopsVariables();
 
@@ -138,6 +130,7 @@ void RTTOVOneDVarCheck::applyFilter(const std::vector<bool> & apply,
   obsbias.save("ObsBias");
 
 // Pass it all to fortran
+  const ufo::GeoVaLs * gvals = data_.getGeoVaLs();
   ufo_rttovonedvarcheck_apply_f90(keyRTTOVOneDVarCheck_,
                                   parameters_.ModOptions.value().toConfiguration(),
                                   variables, hoxdiags_retrieved_vars_,

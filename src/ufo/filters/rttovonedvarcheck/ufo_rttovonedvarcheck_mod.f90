@@ -181,6 +181,14 @@ subroutine ufo_rttovonedvarcheck_apply(self, f_conf, vars, hofxdiags_vars, geova
   ! geovals are only providing surface information
   call obs % setup(self, prof_index, geovals, vars)
 
+  ! Check for zero obs on a PE, write and return
+  if (obs % iloc == 0) then
+    write(message, *) "Zero obs on this MPI task => writing obs and returning"
+    call fckit_log % info(message)
+    call obs % output(self % obsdb, prof_index, vars, self % nchans)
+    return
+  end if
+
   ! Initialize data arrays
   allocate(b_matrix(prof_index % nprofelements,prof_index % nprofelements))
   allocate(b_inverse(prof_index % nprofelements,prof_index % nprofelements))

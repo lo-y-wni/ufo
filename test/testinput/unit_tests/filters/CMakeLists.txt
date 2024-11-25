@@ -1136,7 +1136,7 @@ if( ${rttov_FOUND} )
                   ECBUILD
                   COMMAND ${CMAKE_BINARY_DIR}/bin/test_ObsFilters.x
                   ARGS    "${CMAKE_CURRENT_SOURCE_DIR}/iasi_rttov_ops_qc_rttovonedvarcheck.yaml"
-                  MPI     1
+                  MPI     2
                   LIBS    ufo
                   LABELS  rttov filters
                   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/../../../ )

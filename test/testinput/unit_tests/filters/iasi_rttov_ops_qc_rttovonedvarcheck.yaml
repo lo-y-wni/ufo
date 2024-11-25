@@ -177,6 +177,98 @@ observations:
       test:
         name: OneDVar/pressureAtTopOfCloudError
       relTol: 1.0e-2
+# Test the filter where one MPI task has zero observations
+- obs operator:
+    <<: *ObsOperator
+  obs space:
+    name: Test one observation file with two MPI threads
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/iasi_metopb_obs_2021011500_oneob.nc4
+    simulated variables: [brightnessTemperature]
+    channels: *all_channels
+#   obsdataout:
+#     engine:
+#       type: H5File
+#       obsfile: Data/iasi_metopb_obs_2021011500_qc_rttovonedvarcheck_oneob_out.nc4
+  geovals:
+    filename: Data/ufo/testinput_tier_1/geovals_iasi_2021011500Z_oneob.nc4
+  obs bias:
+    <<: *ObsBias
+  obs filters:
+### No Channels ###
+  - filter: BlackList
+    filter variables:
+    - name: brightnessTemperature
+      channels: *all_channels
+    where:
+    - variable:
+        name: MetaData/qcf_NoChannels
+      is_in: 1
+### BlackList ###
+  - filter: BlackList
+    filter variables:
+    - name: brightnessTemperature
+      channels: *1dvar_not_used
+### Remove channels over land
+  - filter: BlackList
+    filter variables:
+    - name: brightnessTemperature
+      channels: *land_not_used
+    where:
+    - variable:
+        name: MetaData/surfaceQualifier
+      is_in: 0
+### 1D-Var check ###
+  - filter: RTTOV OneDVar Check
+    ModOptions:
+      Absorbers: *rttov_absorbers
+      obs options:
+        RTTOV_default_opts: UKMO_PS45
+        SatRad_compatibility: false # done in filter
+        RTTOV_GasUnitConv: *gasunitconv
+        UseRHwaterForQC: false
+        UseColdSurfaceCheck: false
+        RTTOV_ScaleRefOzone: *RTTOV_ScaleRefOzone
+        WMO_ID: *wmo_id
+        Sat_ID: *sat_id
+        Instrument_Name: *instrument_id
+        CoefficientPath: *coefpath
+        RTTOV_clw_data: false
+    BMatrix: ../resources/bmatrix/rttov/iasi_bmatrix_70_test.dat
+    RMatrix: ../resources/rmatrix/rttov/iasi_metopb_rmatrix_test.nc4
+    filter variables:
+    - name: brightnessTemperature
+      channels: *1dvarchannels
+    retrieval variables from geovals:
+    - air_temperature # 1
+    - water_vapor_mixing_ratio_wrt_moist_air  # 2
+    - air_temperature_at_2m # 3
+    - water_vapor_mixing_ratio_wrt_moist_air_at_2m # 4
+    - skin_temperature_at_surface # 5
+    - air_pressure_at_surface # 6
+    retrieval variables not from geovals:
+    - cloud_top_pressure # 16
+    - cloud_fraction # 17
+    - emissivity_pc # 18
+    nlevels: 70
+    UseMLMinimization: true
+    DoCloudyChannelRejection: true
+    defer to post: true
+    Max1DVarIterations: 10
+    MaxMLIterations: 10
+    SkinTempErrorLand: 5.0
+    surface emissivity:
+      type: principalcomponent
+      EmisEigVecPath: ../resources/auxillary/IASI_EmisEigenVec.dat
+    RecalculateBT: true
+  compareVariables:
+    - reference:
+        name: TestReference/skinTemperature_onedvar
+      test:
+        name: OneDVar/skinTemperature
+      absTol: 1.0e-2
 # Test the hyperspectral IR with skin T read from the obsspace
 - obs operator:
     <<: *ObsOperator
