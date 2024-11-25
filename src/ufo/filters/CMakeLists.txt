@@ -259,6 +259,8 @@ set ( filters_files
       obsfunctions/ModelHeightAdjustedRelativeHumidity.h
       obsfunctions/ModelHeightAdjustedMarineWind.cc
       obsfunctions/ModelHeightAdjustedMarineWind.h
+      obsfunctions/MPIRank.cc
+      obsfunctions/MPIRank.h
       obsfunctions/ObsErrorBoundConventional.cc
       obsfunctions/ObsErrorBoundConventional.h
       obsfunctions/ObsErrorBoundIR.cc

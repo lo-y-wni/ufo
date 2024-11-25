@@ -1,0 +1,97 @@
+time window:
+  begin: 2000-01-01T00:00:00Z
+  end: 2030-01-01T00:00:00Z
+
+observations:
+- obs space:
+    name: Round Robin
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/mpi_rank.nc4
+    observed variables: [airTemperature]
+    simulated variables: [airTemperature]
+  obs pre filters:
+  - filter: Variable Assignment
+    assignments:
+    - name: MetaData/MPIRank
+      type: int
+      function:
+        name: IntObsFunction/MPIRank
+  compareVariables:
+  - test:
+      name: MetaData/MPIRank
+    reference:
+      name: TestReference/MPIRank_3PE_RR
+
+- obs space:
+    name: Round Robin with grouping into records
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/mpi_rank.nc4
+      obsgrouping:
+        group variables: [group]
+    observed variables: [airTemperature]
+    simulated variables: [airTemperature]
+  obs pre filters:
+  - filter: Variable Assignment
+    assignments:
+    - name: MetaData/MPIRank
+      type: int
+      function:
+        name: IntObsFunction/MPIRank
+  compareVariables:
+  - test:
+      name: MetaData/MPIRank
+    reference:
+      name: TestReference/MPIRank_3PE_RR_Group
+
+- obs space:
+    name: Inefficient
+    distribution:
+      name: InefficientDistribution
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/mpi_rank.nc4
+    observed variables: [airTemperature]
+    simulated variables: [airTemperature]
+  obs pre filters:
+  - filter: Variable Assignment
+    assignments:
+    - name: MetaData/MPIRank
+      type: int
+      function:
+        name: IntObsFunction/MPIRank
+  compareVariables:
+  - test:
+      name: MetaData/MPIRank
+    reference:
+      name: TestReference/MPIRank_3PE_I
+
+- obs space:
+    name: Inefficient with grouping into records
+    distribution:
+      name: InefficientDistribution
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/mpi_rank.nc4
+      obsgrouping:
+        group variables: [group]
+    observed variables: [airTemperature]
+    simulated variables: [airTemperature]
+  obs pre filters:
+  - filter: Variable Assignment
+    assignments:
+    - name: MetaData/MPIRank
+      type: int
+      function:
+        name: IntObsFunction/MPIRank
+  compareVariables:
+  - test:
+      name: MetaData/MPIRank
+    reference:
+      name: TestReference/MPIRank_3PE_I
+
