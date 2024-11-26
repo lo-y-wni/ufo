@@ -1,0 +1,203 @@
+time window:
+  begin: 2000-01-01T00:00:00Z
+  end: 2030-12-31T23:59:59Z
+
+observations:
+
+# Perform the Poisson Disk Thinning filter with one repetition.
+# This gives the same results as in the Poisson Disk Thinning unit test.
+- obs space: &ObsSpace
+    name: Aircraft
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/met_office_poisson_disk_thinning.nc4
+#   obsdataout:
+#     engine:
+#       type: H5File
+#       obsfile: Data/parameter_substitution_out.nc4
+    simulated variables: [airTemperature]
+  obs pre filters:
+  - filter: Domain Check
+    filter variables:
+    - name: airTemperature
+    where:
+    - variable:
+        name: MetaData/superObservation
+      is_in: 1
+  - filter: Parameter Substitution
+    section to repeat:
+      filter: Poisson Disk Thinning
+      min_horizontal_spacing: {}
+      exclusion_volume_shape: ellipsoid
+      shuffle: false
+      category_variable:
+        name: MetaData/scan_index
+      priority_variable:
+        name: MetaData/thinningPriority
+    repetitions:
+    - min_horizontal_spacing:
+      - { "0": 2000, "1": 1000 }
+  passedBenchmark: 34
+
+# Run three versions of the Poisson Disk Thinning filter, each of which
+# has different values of the `min_horizontal_spacing` parameter.
+# A different number of observations pass the thinning compared to the initial case above.
+- obs space: *ObsSpace
+  obs pre filters:
+  - filter: Domain Check
+    filter variables:
+    - name: airTemperature
+    where:
+    - variable:
+        name: MetaData/superObservation
+      is_in: 1
+  - filter: Parameter Substitution
+    section to repeat:
+      filter: Poisson Disk Thinning
+      min_horizontal_spacing: {}
+      exclusion_volume_shape: ellipsoid
+      shuffle: false
+      category_variable:
+        name: MetaData/scan_index
+      priority_variable:
+        name: MetaData/thinningPriority
+    repetitions:
+    - min_horizontal_spacing:
+      - { "0": 2000, "1": 1000 }
+      - { "0": 3000, "1": 2000 }
+      - { "0": 4000, "1": 3000 }
+  passedBenchmark: 12
+
+# Run two versions of the domain check filter, modifying the `where` statement each time.
+# The two filters are mutually exclusive, so expect no observations to pass.
+- obs space: *ObsSpace
+  obs pre filters:
+  - filter: Parameter Substitution
+    section to repeat:
+      filter: Domain Check
+      filter variables:
+        - name: airTemperature
+      where: {}
+    repetitions:
+    - where:
+      - [{variable: {name: MetaData/superObservation}, is_in: 0}]
+      - [{variable: {name: MetaData/superObservation}, is_in: 1}]
+  passedBenchmark: 0
+
+# Another example of modifying the `where` statement.
+# In this example there are multiple `where` conditions changed.
+- obs space: *ObsSpace
+  obs pre filters:
+  - filter: Parameter Substitution
+    section to repeat:
+      filter: RejectList
+      filter variables:
+        - name: airTemperature
+      where: {}
+    repetitions:
+    - where:
+      - [{variable: {name: MetaData/latitude}, maxvalue: -40.0},
+         {variable: {name: MetaData/longitude}, maxvalue: -40.0}]
+      - [{variable: {name: MetaData/latitude}, minvalue: 40.0},
+         {variable: {name: MetaData/longitude}, minvalue: 40.0}]
+  passedBenchmark: 7223
+
+# Two parameters modified during the repetition (`shuffle` and `min_horizontal_spacing`).
+- obs space: *ObsSpace
+  obs pre filters:
+  - filter: Parameter Substitution
+    section to repeat:
+      filter: Poisson Disk Thinning
+      min_horizontal_spacing: {}
+      exclusion_volume_shape: ellipsoid
+      shuffle: {}
+      category_variable:
+        name: MetaData/scan_index
+      priority_variable:
+        name: MetaData/thinningPriority
+      random_seed: 123
+    repetitions:
+    - min_horizontal_spacing:
+      - { "0": 1000, "1": 500 }
+      - { "0": 3000, "1": 2000 }
+    - shuffle:
+      - false
+      - true
+  passedBenchmark: 31
+
+# Post filter using H(x)
+- obs space:
+    name: test data
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/profile_filter_testdata.nc4
+      obsgrouping:
+        group variables: [ "sequenceNumber" ]
+        sort variable: "latitude"
+        sort order: "descending"
+#   obsdataout:
+#     engine:
+#       type: H5File
+#       obsfile: Data/profile_filter_backgroundcheck_out1.nc4
+    simulated variables: [variable]
+  HofX: HofX
+  obs post filters:
+  - filter: Parameter Substitution
+    section to repeat:
+      filter: Profile Background Check
+      filter variables:
+      - name: variable
+      absolute threshold: {}
+    repetitions:
+    - absolute threshold:
+      - 10
+      - 2.5
+  passedBenchmark: 59  # Accepts profiles 1, 2, 4, 6, 7, 9 (note that profile 1 has some missing data)
+
+# Incorrect parameter specified, throwing an exception.
+- obs space: *ObsSpace
+  obs pre filters:
+  - filter: Parameter Substitution
+    section to repeat:
+      filter: Poisson Disk Thinning
+      min_horizontal_spacing: { "0": 2000, "1": 1000 }
+      exclusion_volume_shape: ellipsoid
+      shuffle: false
+      category_variable:
+        name: MetaData/scan_index
+      priority_variable:
+        name: MetaData/thinningPriority
+      random_seed: 123
+    repetitions:
+    - incorrect:
+      - value
+  expectExceptionWithMessage: The parameter `incorrect` does not exist for this filter
+
+# Incorrect number of repetitions for one of the parameters, throwing an exception
+- obs space: *ObsSpace
+  obs pre filters:
+  - filter: Parameter Substitution
+    section to repeat:
+      filter: Poisson Disk Thinning
+      min_horizontal_spacing: {}
+      exclusion_volume_shape: ellipsoid
+      shuffle: {}
+      category_variable:
+        name: MetaData/scan_index
+      priority_variable:
+        name: MetaData/thinningPriority
+      random_seed: {}
+    repetitions:
+    - min_horizontal_spacing:
+      - { "0": 2000, "1": 1000 }
+      - { "0": 3000, "1": 2000 }
+    - shuffle:
+      - true
+      - false
+    - random_seed:
+      - 123
+  expectExceptionWithMessage: Invalid number of repetitions for `random_seed`
+
+

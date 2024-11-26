@@ -78,6 +78,8 @@ set ( filters_files
       ObsFilterData.h
       ObsRefractivityGradientCheck.h
       ObsRefractivityGradientCheck.cc
+      ParameterSubstitution.cc
+      ParameterSubstitution.h
       PreQC.cc
       PreQC.h
       ProbabilityGrossErrorWholeReport.cc

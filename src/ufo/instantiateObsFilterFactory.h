@@ -35,6 +35,7 @@
 #include "ufo/filters/ObsDomainCheck.h"
 #include "ufo/filters/ObsDomainErrCheck.h"
 #include "ufo/filters/ObsRefractivityGradientCheck.h"
+#include "ufo/filters/ParameterSubstitution.h"
 #include "ufo/filters/PerformAction.h"
 #include "ufo/filters/PoissonDiskThinning.h"
 #include "ufo/filters/PreQC.h"
@@ -130,6 +131,8 @@ void instantiateObsFilterFactory() {
            MWCLWCheckMaker("MWCLW Check");
   static FilterMaker<ObsRefractivityGradientCheck>
            ObsRefractivityGradientCheckMaker("Obs Refractivity Gradient Check");
+  static FilterMaker<ParameterSubstitution>
+           parameterSubstitutionMaker("Parameter Substitution");
   static FilterMaker<PerformAction>
            performActionMaker("Perform Action");
   static FilterMaker<PoissonDiskThinning>
