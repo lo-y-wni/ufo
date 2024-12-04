@@ -59,6 +59,11 @@ GNSSROOneDVarCheck::GNSSROOneDVarCheck(ioda::ObsSpace & obsdb,
                                     channels[0],
                                     parameters_.noSuperCheck.value());
 
+  allvars_ += Variable("GeoVaLs/air_pressure_levels");
+  allvars_ += Variable("GeoVaLs/water_vapor_mixing_ratio_wrt_moist_air");
+  allvars_ += Variable("GeoVaLs/geopotential_height");
+  allvars_ += Variable("GeoVaLs/geopotential_height_levels");
+
   oops::Log::debug() << "GNSSROOneDVarCheck contructor complete. " << std::endl;
 }
 
