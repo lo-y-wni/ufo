@@ -132,11 +132,12 @@ module ufo_radiancerttov_utils_mod
     type(rttov_radiance)             :: radiance_k      ! Output radiances
 
     type(mw_scatt_io)                :: mw_scatt
-    real(kind_real), allocatable     :: ciw(:,:)        ! pointer to either ice from RTTOV-SCATT or diagnosed ice from Qsplit
-    real(kind_real), allocatable     :: tc_ozone(:)     ! total column ozone
+    real(kind_real), allocatable     :: ciw(:,:)                ! pointer to either ice from RTTOV-SCATT or diagnosed ice from Qsplit
+    real(kind_real), allocatable     :: tc_ozone(:)             ! total column ozone
     logical, allocatable             :: q_profile_reset(:,:)    ! flag to say if the humidity has been reset to a minimum value
     logical, allocatable             :: clw_profile_reset(:,:)  ! flag to say if cloud liquid water has been reset to a minimum value
     logical, allocatable             :: ciw_profile_reset(:,:)  ! flag to say if cloud ice has been reset to a minimum value
+    logical, allocatable             :: print_profile(:)        ! flag to specify which profiles should have verbose output for debugging
 
     integer, allocatable             :: sensor_index_array(:)
 
@@ -212,6 +213,7 @@ module ufo_radiancerttov_utils_mod
     character(len=MAXVARLEN), allocatable :: variablesFromObsSpace(:)
 
     real(kind_real)                       :: MWScattZeroJacPress ! zero cloud jacobian above threshold pressure level
+    real(kind_real), allocatable          :: inspectlatlonbox(:)
 
   contains
 
@@ -493,6 +495,12 @@ contains
       call f_confOpts % get_or_die("InspectProfileNumber", conf % inspect)
     else
       allocate(conf % inspect(0))
+    end if
+
+    if (f_confOpts%has("InspectProfileLatLonBox")) then
+      call f_confOpts % get_or_die("InspectProfileLatLonBox", conf % inspectlatlonbox)
+    else
+      allocate(conf % inspectlatlonbox(0))
     end if
 
     call f_confOpts % get_or_die("surface emissivity group", str)
@@ -1652,6 +1660,21 @@ contains
       end if
     end if
 
+    ! Setup array which details profiles that will have detailed diagnostics printed
+    allocate(self % print_profile(nprofiles))
+    self % print_profile(:) = .false.
+    do iprof = 1, nprofiles
+      if( any(conf % inspect == iprof) ) self % print_profile(iprof) = .true.
+      if( size(conf % inspectlatlonbox) == 4 ) then
+        if (profiles(iprof) % latitude  > conf % inspectlatlonbox(1) .and. &
+            profiles(iprof) % latitude  < conf % inspectlatlonbox(2) .and. &
+            profiles(iprof) % longitude > conf % inspectlatlonbox(3) .and. &
+            profiles(iprof) % longitude < conf % inspectlatlonbox(4)) then
+          self % print_profile(iprof) = .true.
+        end if
+      end if
+    end do
+
   end subroutine ufo_rttov_setup_rtprof
 
   subroutine ufo_rttov_check_rtprof(self, conf, iprof, errorstatus)
@@ -1810,11 +1833,12 @@ contains
       if (conf % do_mw_scatt) then
         if (associated(self % mw_scatt % freq_indices)) deallocate(self % mw_scatt % freq_indices)
       end if
-      if (allocated(self % ciw))                      deallocate(self % ciw)
-      if (allocated(self % tc_ozone))                 deallocate(self % tc_ozone)
-      if (allocated(self % q_profile_reset))          deallocate(self % q_profile_reset)
+      if (allocated(self % ciw))                        deallocate(self % ciw)
+      if (allocated(self % tc_ozone))                   deallocate(self % tc_ozone)
+      if (allocated(self % q_profile_reset))            deallocate(self % q_profile_reset)
       if (allocated(self % clw_profile_reset))          deallocate(self % clw_profile_reset)
       if (allocated(self % ciw_profile_reset))          deallocate(self % ciw_profile_reset)
+      if (allocated(self % print_profile))              deallocate(self % print_profile)
     end if
 
   end subroutine ufo_rttov_alloc_direct

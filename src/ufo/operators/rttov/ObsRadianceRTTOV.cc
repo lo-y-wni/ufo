@@ -7,7 +7,6 @@
 
 #include "ufo/operators/rttov/ObsRadianceRTTOV.h"
 
-#include <algorithm>
 #include <ostream>
 #include <set>
 #include <string>
@@ -17,7 +16,6 @@
 
 #include "oops/base/ObsVariables.h"
 #include "oops/base/Variables.h"
-#include "oops/util/IntSetParser.h"
 
 #include "ufo/GeoVaLs.h"
 #include "ufo/ObsDiagnostics.h"
@@ -48,6 +46,16 @@ ObsRadianceRTTOV::ObsRadianceRTTOV(const ioda::ObsSpace & odb,
   // Remove ozone from varin_ if calculate from ref is switched on
   if (parameters.obsOptions.value().RTTOVScaleRefOzone.value())
       varin_ -= oops::Variable{"mole_fraction_of_ozone_in_air"};
+
+  // Sanity check the provided vector if inspectProfileLatLonBox is used
+  // latlonbox = [latmin, latmax, lonmin, lonmax]
+  if (parameters.obsOptions.value().inspectProfileLatLonBox.value().has_value()) {
+      std::vector<float> latlonbox =
+          parameters.obsOptions.value().inspectProfileLatLonBox.value().get();
+      assert(size(latlonbox) == 4);
+      assert(latlonbox[0] < latlonbox[1]);
+      assert(latlonbox[2] < latlonbox[3]);
+  }
 
   oops::Log::info() << "ObsRadianceRTTOV channels: " << channels_list << std::endl;
   oops::Log::trace() << "ObsRadianceRTTOV created." << std::endl;

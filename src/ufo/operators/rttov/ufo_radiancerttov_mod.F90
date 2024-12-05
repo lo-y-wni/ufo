@@ -338,7 +338,7 @@ contains
         iprof = prof_start + iprof_rttov - 1
 
         ! print profile information if requested
-        if(any(self % conf % inspect == iprof)) call self % RTprof % print_rtprof(self % conf, iprof)
+        if(self % RTProf % print_profile(iprof)) call self % RTprof % print_rtprof(self % conf, iprof)
 
         ! check RTTOV profile will be valid for RTTOV and flag it if it fails the check
         call self % RTprof % check_rtprof(self % conf, iprof, errorstatus)
@@ -413,7 +413,7 @@ contains
       if (size(self % conf % inspect) > 0) then
         do ichan = 1, ichan_sim, self % RTprof % nchan_inst
           iprof = prof_start + chanprof(ichan) % prof - 1
-          if(any(self % conf % inspect == iprof)) then
+          if(self % RTProf % print_profile(iprof)) then
             write(*,*) "profile ", iprof
             write(*,*) "calcemiss = ",self % RTprof % calcemis(ichan:ichan+self%RTprof%nchan_inst-1)
             write(*,*) "emissivity in = ",self % RTprof % emissivity(ichan:ichan+self%RTprof%nchan_inst-1) % emis_in
@@ -529,7 +529,7 @@ contains
           if (size(self % conf % inspect) > 0) then
             do ichan = 1, ichan_sim, self % RTprof % nchan_inst
               iprof = prof_start + chanprof(ichan) % prof - 1
-              if(any(self % conf % inspect == iprof)) then
+              if(self % RTProf % print_profile(iprof)) then
                 write(*,*) "profile ", iprof
                 write(*,*) "emissivity out = ",self % RTprof % emissivity(ichan:ichan+self%RTprof%nchan_inst-1) % emis_out
                 write(*,*) "hofx out = ",hofx(1:size(self%channels),iprof)

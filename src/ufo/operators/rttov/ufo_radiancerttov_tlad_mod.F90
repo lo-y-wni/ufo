@@ -281,7 +281,7 @@ contains
         iprof = prof_start + iprof_rttov - 1
 
         ! print profile information if requested
-        if(any(self % conf % inspect == iprof)) then
+        if(self % RTprof_K % print_profile(iprof)) then
           write(*,*) "tlad profile start"
           call self % RTprof_K % print_rtprof(self % conf, iprof)
           write(*,*) "tlad profile done"
@@ -344,7 +344,7 @@ contains
       if(size(self % conf % inspect) > 0) then
         do ichan = 1, ichan_sim, self % RTprof_K % nchan_inst
           iprof = prof_start + chanprof(ichan) % prof - 1
-          if(any(self % conf % inspect == iprof)) then
+          if(self % RTprof_K % print_profile(iprof)) then
             write(*,*) "tlad settraj profile ", iprof
             write(*,*) "tlad settraj calcemiss = ",self % RTprof_K % calcemis(ichan:ichan+self%RTprof_K%nchan_inst-1)
             write(*,*) "tlad settraj emissivity in = ",self % RTprof_K % emissivity(ichan:ichan+self%RTprof_K%nchan_inst-1) % emis_in
@@ -490,7 +490,7 @@ contains
       if(size(self % conf % inspect) > 0) then
         do ichan = 1, ichan_sim, self % RTprof_K % nchan_inst
           iprof = prof_start + chanprof(ichan) % prof - 1
-          if(any(self % conf % inspect == iprof)) then
+          if(self % RTprof_K % print_profile(iprof)) then
           write(*,*) "tlad profile ", iprof
           write(*,*) "tlad emissivity out = ",self % RTprof_K % emissivity(ichan:ichan+self%RTprof_K%nchan_inst-1) % emis_out
           write(*,*) "tlad hofx out = ", self % RTprof_K % radiance % bt(ichan:ichan+self%RTprof_K%nchan_inst-1)

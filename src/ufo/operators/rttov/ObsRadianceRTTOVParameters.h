@@ -127,6 +127,13 @@ class RTTOVObsOptionsParameters : public oops::Parameters {
   /// Note this is numbering from 1 as it is Fortran that will provide output.
   oops::OptionalParameter<std::vector<int>> inspectProfileNumber{"InspectProfileNumber", this};
 
+  /// Debugging information in a specified region
+  oops::OptionalParameter<std::vector<float>> inspectProfileLatLonBox{
+      "InspectProfileLatLonBox",
+      "Specify the profiles where further diagnostics are needed based on a latitude and longitude "
+      "box where this parameter requires [latmin, latmax, lonmin, lonmax]",
+      this};
+
   /// An optional group which provides the path to reading <Group>/emissivity.  This allows
   /// RTTOV to use surface emissivity from the ObsSpace
   oops::Parameter<std::string> surfaceEmissivityGroup{"surface emissivity group", "", this};

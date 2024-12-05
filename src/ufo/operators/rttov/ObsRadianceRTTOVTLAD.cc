@@ -7,16 +7,13 @@
 
 #include "ufo/operators/rttov/ObsRadianceRTTOVTLAD.h"
 
-#include <algorithm>
 #include <ostream>
-#include <set>
 #include <vector>
 
 #include "ioda/ObsSpace.h"
 #include "ioda/ObsVector.h"
 #include "oops/base/ObsVariables.h"
 #include "oops/base/Variables.h"
-#include "oops/util/IntSetParser.h"
 #include "oops/util/Logger.h"
 #include "ufo/GeoVaLs.h"
 #include "ufo/ObsDiagnostics.h"
