@@ -10,7 +10,7 @@
 
 #include <string>
 #include <vector>
-
+#include "oops/util/parameters/OptionalParameter.h"
 #include "oops/util/parameters/Parameter.h"
 #include "oops/util/parameters/Parameters.h"
 #include "oops/util/parameters/RequiredParameter.h"
@@ -56,6 +56,9 @@ class HydrometeorCheckAMSUAParameters : public oops::Parameters {
   /// Example: use observation bias correction terms from GSI
   ///          test_biasterm: GsiObsBiasTerm
   oops::Parameter<std::string> testBiasTerm{"test_biasterm", "ObsBiasTerm", this};
+
+  /// Clouds in the obs operator of CRTM
+  oops::OptionalParameter<std::vector<std::string>> clouds{"Clouds", this};
 };
 
 ///

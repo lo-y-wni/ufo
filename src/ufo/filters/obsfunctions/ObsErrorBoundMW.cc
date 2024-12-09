@@ -145,6 +145,10 @@ void ObsErrorBoundMW::compute(const ObsFilterData & in,
   if (options_.thresholdfactor.value() != boost::none) {
     thresholdfactor = options_.thresholdfactor.value().get();
   }
+  float thresholdfactor_precip = thresholdfactor;
+  if (options_.thresholdfactor_precip.value() != boost::none) {
+    thresholdfactor_precip = options_.thresholdfactor_precip.value().get();
+  }
 
   // Output integrated error bound for gross check
   std::vector<float> obserrdata(nlocs);
@@ -167,7 +171,7 @@ void ObsErrorBoundMW::compute(const ObsFilterData & in,
           if (water_frac[iloc] > 0.99) {
             if (inst == "amsua") {
               if (channel <= ich536  || channel == ich890) {
-                out[ichan][iloc] = thresholdfactor * (*obserr)[ichan][iloc]
+                out[ichan][iloc] = thresholdfactor_precip * (*obserr)[ichan][iloc]
                                        * (1.0 / pow(errflat[0][iloc], 2))
                                        * (1.0 / pow(errftaotop[ichan][iloc], 2))
                                        * (1.0 / pow(errftopo[ichan][iloc], 2));
@@ -181,7 +185,7 @@ void ObsErrorBoundMW::compute(const ObsFilterData & in,
             }
             if (inst == "atms") {
               if (channel <= ich536  || channel >= ich890) {
-                out[ichan][iloc] = std::fmin((thresholdfactor * (*obserr)[ichan][iloc]
+                out[ichan][iloc] = std::fmin((thresholdfactor_precip * (*obserr)[ichan][iloc]
                                        * (1.0 / pow(errflat[0][iloc], 2))
                                        * (1.0 / pow(errftaotop[ichan][iloc], 2))
                                        * (1.0 / pow(errftopo[ichan][iloc], 2))), 10.0);

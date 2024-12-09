@@ -108,6 +108,10 @@ void HydrometeorCheckAMSUA::compute(const ObsFilterData & in,
   in.get(Variable("ObsDiag/brightness_temperature_assuming_clear_sky", channels_)[ich536],
          hofxclr536);
 
+  // Get HofX for all-sky simulation (53.6 GHz)
+  std::vector<float> hofx536(nlocs);
+  in.get(Variable(hofxgrp+"/brightnessTemperature", channels_)[ich536], hofx536);
+
   // Get ObsBiasTerm: constant term for 23.8GHz channel
   std::vector<float> bias_const238(nlocs);
   in.get(Variable(biastermgrp+"/constant", channels_)[ich238], bias_const238);
@@ -153,6 +157,27 @@ void HydrometeorCheckAMSUA::compute(const ObsFilterData & in,
   ioda::ObsDataVector<float> clwobs(in.obsspace(), clwretvar.toOopsObsVariables());
   in.get(clwretvar, clwobs);
 
+  // Check if precipitable clouds are in the obs operator.
+  bool HasPrecipitableClouds = false;
+  if (options_.clouds.value() != boost::none) {
+    std::vector<std::string> Clouds = options_.clouds.value().get();
+    for (size_t icloud = 0; icloud < Clouds.size(); ++icloud) {
+      if (Clouds[icloud] == "Rain") {
+        HasPrecipitableClouds = true;
+        break;
+      } else if (Clouds[icloud] == "Snow") {
+        HasPrecipitableClouds = true;
+        break;
+      } else if (Clouds[icloud] == "Graupel") {
+        HasPrecipitableClouds = true;
+        break;
+      } else if (Clouds[icloud] == "Hail") {
+        HasPrecipitableClouds = true;
+        break;
+      }
+    }
+  }
+
   // Set parameters
   float w1f6 = 1.0/10.0, w2f6 = 1.0/0.80;
   float w1f4 = 1.0/0.30, w2f4 = 1.0/1.80;
@@ -186,6 +211,7 @@ void HydrometeorCheckAMSUA::compute(const ObsFilterData & in,
     if (water_frac[iloc] > 0.99) {
       // Calculate cloud effect from 53.6 GHz (Channel 4)
       float cldeff_obs536 = btobs[ich536][iloc] - hofxclr536[iloc] - bias[ich536][iloc];
+      float cldeff_fg536 = hofx536[iloc] - hofxclr536[iloc];
 
       // Cloud water retrieval sanity check
       if (clwobs[0][iloc] > 999.0) {
@@ -196,13 +222,13 @@ void HydrometeorCheckAMSUA::compute(const ObsFilterData & in,
       }
 
       // Precipitation check (factch6)
-      if (factch6 >= 1.0) {
+      if (factch6 >= 1.0 && HasPrecipitableClouds == false) {
         for (size_t ich = ich238; ich <= ich544; ++ich) {
           affected_channels[ich][iloc] = 1;
         }
         affected_channels[ich890][iloc] = 1;
       // Scattering check (ch5 cloud effect)
-      } else if (cldeff_obs536 < -0.5) {
+      } else if (cldeff_obs536 < -0.5 || (cldeff_fg536 < -0.5 && HasPrecipitableClouds)) {
         for (size_t ich = ich238; ich <= ich544; ++ich) {
           affected_channels[ich][iloc] = 1;
         }

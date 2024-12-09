@@ -129,6 +129,10 @@ void HydrometeorCheckATMS::compute(const ObsFilterData & in,
   in.get(Variable("ObsDiag/brightness_temperature_assuming_clear_sky", channels_)[ich1650],
          hofxclr1650);
 
+  // Get HofX for all-sky simulation (53.6 GHz)
+  std::vector<float> hofx536(nlocs);
+  in.get(Variable(hofxgrp+"/brightnessTemperature", channels_)[ich536], hofx536);
+
   // Get ObsBiasTerm: constant term for 23.8GHz channel
   std::vector<float> bias_const238(nlocs, 0.0f);
   if (in.has(Variable(biastermgrp+"/constant", channels_)[ich238])) {
@@ -177,6 +181,27 @@ void HydrometeorCheckATMS::compute(const ObsFilterData & in,
   ioda::ObsDataVector<float> clwobs(in.obsspace(), clwretvar.toOopsObsVariables());
   in.get(clwretvar, clwobs);
 
+  // Check if precipitable clouds are in the obs operator.
+  bool HasPrecipitableClouds = false;
+  if (options_.clouds.value() != boost::none) {
+    std::vector<std::string> Clouds = options_.clouds.value().get();
+    for (size_t icloud = 0; icloud < Clouds.size(); ++icloud) {
+      if (Clouds[icloud] == "Rain") {
+        HasPrecipitableClouds = true;
+        break;
+      } else if (Clouds[icloud] == "Snow") {
+        HasPrecipitableClouds = true;
+        break;
+      } else if (Clouds[icloud] == "Graupel") {
+        HasPrecipitableClouds = true;
+        break;
+      } else if (Clouds[icloud] == "Hail") {
+        HasPrecipitableClouds = true;
+        break;
+      }
+    }
+  }
+
   // Set parameters
   float w1f6 = 1.0/10.0, w2f6 = 1.0/0.80;
   float w1f4 = 1.0/0.30, w2f4 = 1.0/1.80;
@@ -211,6 +236,7 @@ void HydrometeorCheckATMS::compute(const ObsFilterData & in,
     if (water_frac[iloc] > 0.99) {
       // Calculate cloud effect from 53.6 GHz (Channel 6)
       float cldeff_obs536 = btobs[ich536][iloc] - hofxclr536[iloc] - bias[ich536][iloc];
+      float cldeff_fg536 = hofx536[iloc] - hofxclr536[iloc];
 
       // Calculate cloud effect from 89 GHz (Channel 16)
       float cldeff_obs890 = btobs[ich890][iloc] - hofxclr890[iloc] - bias[ich890][iloc];
@@ -229,7 +255,7 @@ void HydrometeorCheckATMS::compute(const ObsFilterData & in,
         }
       }
       // Precipitation check (factch6: 54.4 GHz)
-      if (factch6 >= 1.0) {
+      if (factch6 >= 1.0 && HasPrecipitableClouds == false) {
         for (size_t ich = ich238; ich <= ich544; ++ich) {
           affected_channels[ich][iloc] = 1;
         }
@@ -238,7 +264,8 @@ void HydrometeorCheckATMS::compute(const ObsFilterData & in,
           affected_channels[ich][iloc] = 1;
         }
       // Scattering check (53.6GHz cloud effect)
-      } else if (cldeff_obs536 < -0.5) {
+      // Scattering check (53.6GHz precipitable clouds effect)
+      } else if (cldeff_obs536 < -0.5 || (cldeff_fg536 < -0.5 && HasPrecipitableClouds)) {
         for (size_t ich = ich238; ich <= ich544; ++ich) {
           affected_channels[ich][iloc] = 1;
         }
