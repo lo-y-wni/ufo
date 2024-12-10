@@ -209,9 +209,11 @@ void HydrometeorCheckAMSUA::compute(const ObsFilterData & in,
 
     // Hydrometeor check over water surface
     if (water_frac[iloc] > 0.99) {
-      // Calculate cloud effect from 53.6 GHz (Channel 4)
+      // Calculate cloud effect from 53.6 GHz (Channel 5)
       float cldeff_obs536 = btobs[ich536][iloc] - hofxclr536[iloc] - bias[ich536][iloc];
-      float cldeff_fg536 = hofx536[iloc] - hofxclr536[iloc];
+
+      // Calculate cloud effect from hofx at 53.6 GHz (Channel 5)
+      float cldeff_fg536 = hofx536[iloc] - hofxclr536[iloc] - bias[ich536][iloc];
 
       // Cloud water retrieval sanity check
       if (clwobs[0][iloc] > 999.0) {

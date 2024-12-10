@@ -236,7 +236,9 @@ void HydrometeorCheckATMS::compute(const ObsFilterData & in,
     if (water_frac[iloc] > 0.99) {
       // Calculate cloud effect from 53.6 GHz (Channel 6)
       float cldeff_obs536 = btobs[ich536][iloc] - hofxclr536[iloc] - bias[ich536][iloc];
-      float cldeff_fg536 = hofx536[iloc] - hofxclr536[iloc];
+
+      // Calculate cloud effect from hofx at 53.6 GHz (Channel 6)
+      float cldeff_fg536 = hofx536[iloc] - hofxclr536[iloc] - bias[ich536][iloc];
 
       // Calculate cloud effect from 89 GHz (Channel 16)
       float cldeff_obs890 = btobs[ich890][iloc] - hofxclr890[iloc] - bias[ich890][iloc];
