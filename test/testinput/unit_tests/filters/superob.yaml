@@ -3,7 +3,7 @@ time window:
   end: 2030-12-31T23:59:59Z
 
 observations:
-# Superobbing performed on two filter variables.
+# Superobbing performed on two filter variables using the `mean OmB` algorithm.
 # All locations apart from the one chosen for the superob are flagged as rejected.
 - obs space:
     name: Sonde
@@ -37,7 +37,8 @@ observations:
       name: DerivedObsValue/windEastward
     absTol: 1.0e-5
 
-# Superobbing performed on two filter variables, selecting locations using the `where` statement.
+# Superobbing performed on two filter variables using the `mean OmB` algorithm,
+# selecting locations using the `where` statement.
 # The same number of observations pass, but the superob values change.
 - obs space:
     name: Sonde
@@ -75,7 +76,7 @@ observations:
       name: DerivedObsValue/windEastward
     absTol: 1.0e-5
 
-# Superobbing performed on two filter variables.
+# Superobbing performed on two filter variables using the `mean OmB` algorithm.
 # All locations apart from the one chosen for the superob are not rejected,
 # but a diagnostic flag is set at those locations.
 - obs space:
@@ -113,6 +114,40 @@ observations:
       name: TestReference/superob_windEastward
     test:
       name: DiagnosticFlags/superob/windEastward
+
+# Superobbing performed on two filter variables using the `mean obs` algorithm.
+# All locations apart from the one chosen for the superob are flagged as rejected.
+- obs space:
+    name: Sonde
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/superob.nc4
+      obsgrouping:
+        group variables: [stationIdentification]
+    simulated variables: [airTemperature, windEastward]
+  HofX: HofX
+  obs filters:
+  - filter: SuperOb
+    filter variables:
+    - name: airTemperature
+    - name: windEastward
+    algorithm:
+      name: mean obs
+    action:
+      name: reject
+  passedBenchmark: 3
+  compareVariables:
+  - reference:
+      name: TestReference/airTemperature_meanO
+    test:
+      name: DerivedObsValue/airTemperature
+    absTol: 1.0e-5
+  - reference:
+      name: TestReference/windEastward_meanO
+    test:
+      name: DerivedObsValue/windEastward
+    absTol: 1.0e-5
 
 # Observation grouping is not specified, throwing an exception.
 - obs space:

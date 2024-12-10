@@ -6,6 +6,8 @@
 set ( superob_files
       SuperObBase.cc
       SuperObBase.h
+      SuperObMeanO.cc
+      SuperObMeanO.h
       SuperObMeanOmB.cc
       SuperObMeanOmB.h
       SuperObRadar.cc

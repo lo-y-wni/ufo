@@ -46,6 +46,11 @@ class GenericSuperObParameters : public SuperObParametersBase {
 /// \brief SuperOb base class.
 ///
 /// Subclasses of this class must implement the `computeSuperOb` method.
+/// The `requireHofX` function returns `true` by default. If H(x) is not required
+/// by a subclass then the implementation of `requireHofX` in that subclass
+/// should be set to return `false`.
+/// If required, the subclass should also override the `saveAuxiliaryVariables` method,
+/// which can be used to save any desired quantities to the ObsSpace.
 class SuperObBase {
  public:
   explicit SuperObBase(const SuperObParametersBase &,
@@ -58,6 +63,9 @@ class SuperObBase {
 
   /// Run the chosen superobbing algorithm on each record in the data set.
   void runAlgorithm() const;
+
+  /// Specifies whether the chosen superobbing algorithm requires H(x).
+  virtual bool requireHofX() const {return true;}
 
  protected:
   /// Compute superob values and errors for each record.

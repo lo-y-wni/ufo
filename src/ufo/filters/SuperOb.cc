@@ -27,7 +27,21 @@ SuperOb::SuperOb(ioda::ObsSpace & obsdb,
     throw eckit::BadParameter("group variables configuration is empty.", Here());
   }
 
-  allvars_ += Variables(filtervars_, "HofX");
+  // Add H(x) to the list of variables if required to do so by the superob algorithm.
+  // The algorithm must be instantiated here in order to check whether that is the case.
+  // Dummy values of the `apply` and `flagged` vectors are used here because they are not
+  // available in the filter constructor (and are not needed for the call to `requireHofX`).
+  const SuperObParametersWrapper & params = options_.algorithmParameters.value();
+  const std::vector<bool> apply;  // dummy apply vector
+  std::vector<std::vector<bool>> flagged;  // dummy flagged vector
+
+  std::unique_ptr<SuperObBase> superOb =
+    SuperObFactory::create(params.superObName,
+                           data_, apply, filtervars_, *flags, flagged);
+
+  if (superOb->requireHofX()) {
+    allvars_ += Variables(filtervars_, "HofX");
+  }
 
   oops::Log::debug() << "SuperOb constructor finished" << std::endl;
 }
@@ -41,6 +55,7 @@ void SuperOb::applyFilter(const std::vector<bool> & apply,
                           std::vector<std::vector<bool>> & flagged) const {
   oops::Log::trace() << "SuperOb applyFilter" << std::endl;
 
+  // Run superobbing algorithm.
   const SuperObParametersWrapper & params = options_.algorithmParameters.value();
 
   std::unique_ptr<SuperObBase> superOb =

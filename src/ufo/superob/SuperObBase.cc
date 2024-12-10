@@ -49,6 +49,8 @@ void SuperObBase::runAlgorithm() const {
     }
   }
 
+  // Names of H(x) variables. These are specified regardless of whether
+  // H(x) is used in the superob algorithm.
   Variables varhofx(filtervars_, "HofX");
 
   // Loop over each filter variable and compute superobs for each one.
@@ -56,10 +58,17 @@ void SuperObBase::runAlgorithm() const {
   // auxiliary variables in the algorithm.
   for (size_t jvar = 0; jvar < filtervars_.nvars(); ++jvar) {
     const std::string variableName = filtervars_[jvar].variable();
+    // Vector of observation values.
     std::vector<float> obs(nlocs);
     obsdb_.get_db("ObsValue", variableName, obs);
-    std::vector<float> hofx(nlocs);
-    data_.get(varhofx.variable(jvar), hofx);
+    // Vector of H(x) values.
+    // Set to missing by default. If `requireHofX()` returns `true`
+    // then this vector is filled with H(x) values.
+    std::vector<float> hofx(nlocs, missing);
+    if (requireHofX()) {
+      data_.get(varhofx.variable(jvar), hofx);
+    }
+    // Vector of output superob values.
     std::vector<float> superobs(nlocs, missing);
     // Set all entries in `flagged_` to true. One location in each record
     // will be set to `false` in order to indicate where the superob
