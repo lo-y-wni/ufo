@@ -31,6 +31,24 @@ void GeoVaLsWriter::priorFilter(const GeoVaLs & gv) {
 
 // -----------------------------------------------------------------------------
 
+void GeoVaLsWriter::postFilter(const GeoVaLs & gv,
+                               const ioda::ObsVector &,
+                               const ioda::ObsVector &,
+                               const ObsDiagnostics &) {
+  this->priorFilter(gv);
+}
+
+// -----------------------------------------------------------------------------
+
+void GeoVaLsWriter::checkFilterData(const FilterStage filterStage) {
+  // GeoValsWriter can not be a pre filter
+  if (filterStage == FilterStage::PRE) {
+    throw eckit::UserError("Invalid pre filter (GeoVaLsWriter) requested", Here());
+  }
+}
+
+// -----------------------------------------------------------------------------
+
 void GeoVaLsWriter::print(std::ostream & os) const {
   os << "Filter outputting GeoVaLs" << config_;
 }

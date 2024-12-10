@@ -45,8 +45,9 @@ class GeoVaLsWriter : public ObsFilterBase {
   void postFilter(const GeoVaLs &,
                   const ioda::ObsVector &,
                   const ioda::ObsVector &,
-                  const ObsDiagnostics &) override {}
-  void checkFilterData(const FilterStage filterStage) override {}
+                  const ObsDiagnostics &) override;
+
+  void checkFilterData(const FilterStage filterStage) override;
 
   oops::Variables requiredVars() const override {return novars_;};
   oops::ObsVariables requiredHdiagnostics() const override {return noobsvars_;};
