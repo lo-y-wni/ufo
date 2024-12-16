@@ -43,7 +43,7 @@ template <typename OBS> class RunCRTM : public oops::Application {
 // -----------------------------------------------------------------------------
   virtual ~RunCRTM() {}
 // -----------------------------------------------------------------------------
-  int execute(const eckit::Configuration & fullConfig, bool validate) const {
+  int execute(const eckit::Configuration & fullConfig) const {
 //  Setup observation window
     const util::TimeWindow timeWindow(fullConfig.getSubConfiguration("time window"));
 

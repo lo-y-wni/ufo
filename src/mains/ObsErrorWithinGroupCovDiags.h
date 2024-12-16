@@ -60,9 +60,8 @@ class ObsErrorWithinGroupCovDiags : public oops::Application {
 
 // -----------------------------------------------------------------------------
 
-  int execute(const eckit::Configuration & fullConfig, bool validate) const {
+  int execute(const eckit::Configuration & fullConfig) const {
     ObsErrorWithinGroupCovDiagsParameters params;
-    if (validate) params.validate(fullConfig);
     params.deserialize(fullConfig);
 
     ioda::ObsSpace obsdb(params.obsSpace.value().toConfiguration(), this->getComm(),
