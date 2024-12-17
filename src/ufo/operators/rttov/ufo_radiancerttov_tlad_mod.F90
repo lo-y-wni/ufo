@@ -166,7 +166,7 @@ contains
     integer                                      :: sensor_index
     integer, allocatable                         :: prof_list(:,:)  ! store list of 'good' profiles
 
-    logical                                      :: jacobian_needed
+    logical                                      :: jacobian_needed, do_profile_diagnostics
     real(kind_real), allocatable                 :: sfc_emiss(:,:)
     character(len = MAXVARLEN)                   :: varname
 
@@ -204,6 +204,8 @@ contains
     message = trim(routine_name) // ': Creating RTTOV profiles from geovals'
     call fckit_log%debug(message)
     call self % RTprof_K % setup_rtprof(geovals,obss,self % conf)
+    do_profile_diagnostics = .false.
+    if (any(self % RTProf_K % print_profile(:))) do_profile_diagnostics = .true.
 
     !DAR: Removing sensor_loop until it's demonstrated to be needed and properly tested
     ! at the moment self % channels is a single 1D array so cannot adequately contain more than one set of channels
@@ -341,7 +343,7 @@ contains
       end if
 
       ! Write out emissivity if checking profile
-      if(size(self % conf % inspect) > 0) then
+      if(do_profile_diagnostics) then
         do ichan = 1, ichan_sim, self % RTprof_K % nchan_inst
           iprof = prof_start + chanprof(ichan) % prof - 1
           if(self % RTprof_K % print_profile(iprof)) then
@@ -487,7 +489,7 @@ contains
         end do
       end if
 
-      if(size(self % conf % inspect) > 0) then
+      if(do_profile_diagnostics) then
         do ichan = 1, ichan_sim, self % RTprof_K % nchan_inst
           iprof = prof_start + chanprof(ichan) % prof - 1
           if(self % RTprof_K % print_profile(iprof)) then

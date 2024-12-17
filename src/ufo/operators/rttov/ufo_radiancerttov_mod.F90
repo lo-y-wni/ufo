@@ -191,6 +191,7 @@ contains
     integer, allocatable                    :: prof_list(:,:)  ! store list of 'good' profiles
 
     logical                                 :: jacobian_needed, skip_profile
+    logical                                 :: do_profile_diagnostics
     real(kind_real), allocatable            :: sfc_emiss(:,:)
     type(obsdatavector_int)                 :: qc_flags
 
@@ -245,6 +246,8 @@ contains
     else
       call self % RTprof % setup_rtprof(geovals,obss,self % conf)
     end if
+    do_profile_diagnostics = .false.
+    if (any(self % RTProf % print_profile(:))) do_profile_diagnostics = .true.
 
     ! Read emissivity from obs space if its requested
     if (self % conf % surface_emissivity_group /= "") then
@@ -410,7 +413,7 @@ contains
       end if
 
       ! Write out emissivity if checking profile
-      if (size(self % conf % inspect) > 0) then
+      if (do_profile_diagnostics) then
         do ichan = 1, ichan_sim, self % RTprof % nchan_inst
           iprof = prof_start + chanprof(ichan) % prof - 1
           if(self % RTProf % print_profile(iprof)) then
@@ -526,7 +529,7 @@ contains
           enddo
 
           ! Write out emissivity out and hofx
-          if (size(self % conf % inspect) > 0) then
+          if (do_profile_diagnostics) then
             do ichan = 1, ichan_sim, self % RTprof % nchan_inst
               iprof = prof_start + chanprof(ichan) % prof - 1
               if(self % RTProf % print_profile(iprof)) then
