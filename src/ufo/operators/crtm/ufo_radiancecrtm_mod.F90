@@ -294,6 +294,8 @@ character(len=1) :: angle_hf
 ! set a local boolean variable for whether we are in vis or ultraviolet channels
 logical        :: Is_Vis_or_UV = .false.
 
+integer, allocatable :: zeroCloudInCRTM0(:)
+
  call obsspace_get_comm(obss, f_comm)
 
  ! Get number of profile and layers from geovals
@@ -402,10 +404,13 @@ logical        :: Is_Vis_or_UV = .false.
 
    !Assign the data from the GeoVaLs
    !--------------------------------
-   call Load_Atm_Data(n_Profiles,n_Layers,geovals,atm,self%conf, SC(n)%Is_Active_Sensor)
-
+   allocate(zeroCloudInCRTM0(n_Profiles))
    call Load_Sfc_Data(n_Profiles,n_Channels,self%channels,geovals,sfc,chinfo,obss,self%conf, &
-                      SC(n)%Is_Active_Sensor, Is_Vis_or_UV)
+                      SC(n)%Is_Active_Sensor, Is_Vis_or_UV, zeroCloudInCRTM0)
+
+   call Load_Atm_Data(n_Profiles,n_Layers,geovals,atm,self%conf, SC(n)%Is_Active_Sensor, &
+                      zeroCloudInCRTM0)
+   deallocate(zeroCloudInCRTM0)
    if (cmp_strings(self%conf%SENSOR_ID(n),'gmi_gpm')) then
      allocate( geo_hf( n_Profiles ))
      call Load_Geom_Data(obss,geo,geo_hf,self%conf%SENSOR_ID(n))

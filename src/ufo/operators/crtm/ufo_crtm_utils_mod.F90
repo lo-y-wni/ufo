@@ -50,7 +50,7 @@ REAL(kind_real), PARAMETER :: &
      &rv_rd = rvgas/rdgas,&
      &esl = 0.621971831,&
      &zvir =  rv_rd - 1_kind_real,&
-     &tice = 273.16_kind_real,&
+     &tice = 273.15_kind_real,&
      &grav = 9.81_kind_real,&
      &aerosol_concentration_minvalue=1.e-16_kind_real,&
      &aerosol_concentration_minvalue_layer=tiny(rdgas),&
@@ -679,13 +679,17 @@ end subroutine ufo_crtm_skip_profiles
 
 ! ------------------------------------------------------------------------------
 
-SUBROUTINE Load_Atm_Data(n_Profiles, n_Layers, geovals, atm, conf, Is_Active_Sensor)
+SUBROUTINE Load_Atm_Data(n_Profiles, n_Layers, geovals, atm, conf, Is_Active_Sensor, &
+                zeroCloudInCRTM)
+
+use ufo_constants_mod, only: zero
 implicit none
 
 integer, intent(in) :: n_Profiles, n_Layers
 type(ufo_geovals), intent(in) :: geovals
 type(CRTM_Atmosphere_type), intent(inout) :: atm(:)
 logical, intent(in), optional :: Is_Active_Sensor
+integer, intent(in), optional :: zeroCloudInCRTM(:)
 type(crtm_conf) :: conf
 
 ! Local variables
@@ -775,6 +779,17 @@ real(kind_real) :: geoval_unit_rescale
       atm(k1)%Cloud(jspec)%Effective_Radius = geoval%vals(:, k1)
     end do
   end do
+  if (present(zeroCloudInCRTM)) then
+    do k1 = 1, n_Profiles
+      if (zeroCloudInCRTM(k1) == 1) then
+        ! Set Water_Content and Effective_Radius = 0 when zeroCloudInCRTM = 1 (true)
+        do jspec = 1, conf%n_Clouds
+          atm(k1)%Cloud(jspec)%Water_Content = zero
+          atm(k1)%Cloud(jspec)%Effective_Radius = zero
+        end do
+      endif
+    end do
+  endif
 
   ! When n_Clouds>0, Cloud_Fraction must either be provided as geoval or in conf
   ! If Cloud_Fraction is provided in conf,then use the Cloud_Fraction in conf
@@ -800,7 +815,11 @@ real(kind_real) :: geoval_unit_rescale
 
   if ( (conf%n_Clouds > 0) .and. (.NOT. IsActiveSensor) ) then
     if ( conf%Cloud_Seeding ) then 
-      do k1 = 1, n_Profiles
+      profile_loop_cs: do k1 = 1, n_Profiles
+        ! Do not check and reset these cloud values if clouds are zero-ed out.
+        if (present(zeroCloudInCRTM)) then
+          if (zeroCloudInCRTM(k1) == 1) cycle profile_loop_cs
+        endif
         do jlevel = 1, atm(k1)%n_layers
            ! Check Cloud Content
            do jspec = 1, conf%n_Clouds
@@ -836,7 +855,7 @@ real(kind_real) :: geoval_unit_rescale
              end if
            end do
         end do
-      end do
+      end do profile_loop_cs
     end if
   end if
 
@@ -849,7 +868,7 @@ end subroutine Load_Atm_Data
 ! ------------------------------------------------------------------------------
 
 subroutine Load_Sfc_Data(n_Profiles, n_Channels, channels, geovals, sfc, chinfo, obss, conf,  &
-                         Is_Active_Sensor, Is_Vis_or_UV)
+                         Is_Active_Sensor, Is_Vis_or_UV, zeroCloudInCRTM)
 
 implicit none
 
@@ -860,6 +879,7 @@ type(CRTM_ChannelInfo_type), intent(in)    :: chinfo(:)
 type(c_ptr), value,          intent(in)    :: obss
 integer(c_int),              intent(in)    :: channels(:)
 type(crtm_conf),             intent(in)    :: conf
+integer,                     intent(out)   :: zeroCloudInCRTM(n_Profiles)
 logical, intent(in) :: Is_Active_Sensor
 logical, intent(in) :: Is_Vis_or_UV
 
@@ -1087,7 +1107,13 @@ real(kind_real), allocatable :: ObsTb(:,:)
       sfc(k1)%Land_Coverage = ZERO
     end if
   end do
-
+  if (obsspace_has(obss, "MetaData", "zeroCloudInCRTM")) then
+    ! zeroCloudInCRTM is 1 over surface where clear-sky assimilation is conducted.
+    call obsspace_get_db(obss, "MetaData", "zeroCloudInCRTM", zeroCloudInCRTM)
+  else
+    ! Do not zero-out clouds by default.
+    zeroCloudInCRTM = 0
+  end if
 end subroutine Load_Sfc_Data
 
 ! ------------------------------------------------------------------------------
