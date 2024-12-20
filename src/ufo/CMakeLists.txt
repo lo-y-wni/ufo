@@ -46,6 +46,7 @@ if( rttov_FOUND )
 endif()
 add_subdirectory( operators/sattcwv )
 add_subdirectory( operators/scatwind )
+add_subdirectory( operators/sfccorrected )
 add_subdirectory( operators/sfcpcorrected )
 add_subdirectory( operators/timeoper )
 add_subdirectory( operators/vertinterp )
@@ -132,6 +133,7 @@ list( APPEND ufo_src_files
     ${gnssro_src_files}
     ${insitupm_src_files}
     ${aerosols_src_files}
+    ${sfccorrected_src_files}
     ${sfcpcorrected_src_files}
     ${radardopplerwind_src_files}
     ${radarradialvelocity_src_files}

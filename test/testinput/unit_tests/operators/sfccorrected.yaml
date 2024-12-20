@@ -1,0 +1,54 @@
+time window:
+  begin: 2024-05-26T21:00:00Z
+  end: 2024-05-27T03:00:00Z
+
+observations:
+- obs operator:
+    name: SfcCorrected
+    correction scheme to use: WRFDA
+  obs space:
+    name: Surface operator 2M temperature WRFDA method
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/surface_tquv_obs_2022052700.nc4
+    # obsdataout:
+    #   engine:
+    #     type: H5File
+    #     obsfile: Data/ufo/surface_tquv_obs_2022052700_out_WRFDA.nc4
+    simulated variables: [airTemperatureAt2M]
+  geovals:
+    filename: Data/ufo/testinput_tier_1/surface_tquv_geovals_2022052700.nc4
+  rms ref: 290.0725
+  tolerance: 1.e-5
+- obs operator:
+    name: SfcCorrected
+    correction scheme to use: UKMO
+  obs space:
+    name: Surface operator 2M temperature UKMO method
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/surface_tquv_obs_2022052700.nc4
+    # obsdataout:
+    #   engine:
+    #     type: H5File
+    #     obsfile: Data/ufo/surface_tquv_obs_2022052700_out_UKMO.nc4
+    simulated variables: [airTemperatureAt2M]
+  geovals:
+    filename: Data/ufo/testinput_tier_1/surface_tquv_geovals_2022052700.nc4
+  rms ref: 290.1876
+  tolerance: 1.e-5
+- obs operator:
+    name: SfcCorrected
+    correction scheme to use: GSL
+  obs space:
+    name: Surface operator 2M temperature GSL method, not yet implemented
+    obsdatain:
+      engine:
+        type: H5File
+        obsfile: Data/ufo/testinput_tier_1/surface_tquv_obs_2022052700.nc4
+    simulated variables: [airTemperatureAt2M]
+  geovals:
+    filename: Data/ufo/testinput_tier_1/surface_tquv_geovals_2022052700.nc4
+  expect constructor to throw exception with message: airTemperatureAt2M_GSL not yet implemented
