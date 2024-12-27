@@ -26,6 +26,8 @@ endif( )
 
 if( CMAKE_CXX_COMPILER_ID MATCHES "PGI" OR CMAKE_CXX_COMPILER_ID MATCHES "NVHPC" )
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ktrap=inv,divz -Mflushz -fast" )
+elseif( CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM" )
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++11-narrowing-const-reference" )
 endif( )
 
 #######################################################################################
